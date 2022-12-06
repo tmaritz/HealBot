@@ -179,3 +179,4 @@ Place the healBot folder in .../Windower/addons/
 - Add in TP for a single user for WS when no parter is around.
 - Fix certain single worded weaponskills (Starlight, Moonlight) from not being used.
 - Add in a min / max distance from target mob potentially. This mostly could be handled by follow distance but doesn't account for target moving.
+- There are other buff sets I have not tested at all - GEO SMN BRD COR - I generally rely on other addons for that or Gearswap.
