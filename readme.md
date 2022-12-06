@@ -3,11 +3,11 @@
 ## Mashup between Original and Updated Versions as of 12/06/2022
 
 ## Original:
-### https://github.com/lorand-ffxi/HealBot
+#### https://github.com/lorand-ffxi/HealBot (Updated 05/22/2018)
 
 ## Additions:
-### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
-### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
+#### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
+#### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
 
 ## Update: HealBot now depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
 
@@ -174,3 +174,8 @@ Place the healBot folder in .../Windower/addons/
 | //hb packetinfo on                     | Adds to the chat log packet info about monitored players                                                      |
 | //hb packetinfo off                    | Prevents packet info from being added to the chat log                                                         |
 
+
+## Todos:
+- Add in TP for a single user for WS when no parter is around.
+- Fix certain single worded weaponskills (Starlight, Moonlight) from not being used.
+- Add in a min / max distance from target mob potentially. This mostly could be handled by follow distance but doesn't account for target moving.
