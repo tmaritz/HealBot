@@ -1,5 +1,14 @@
 # HealBot
 
+## Mashup between Original and Updated Versions as of 12/06/2022
+
+## Original:
+### https://github.com/lorand-ffxi/HealBot
+
+## Additions:
+### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
+### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
+
 ## Update: HealBot now depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
 
 ## NEW: IPC has been added! (see below)
@@ -26,7 +35,7 @@ only want to maintain 2-3 songs without using a dummy song, it may work.  I have
 an idea about how to support BRD songs, so that should be coming soon.
 
 Also coming soon is the ability to cast offensive spells on an assist target's
-target.  
+target.
 
 --------------------------------------------------------------------------------
 
@@ -73,38 +82,95 @@ Place the healBot folder in .../Windower/addons/
 * To reload healBot: `//hb reload`
 
 ### Command List
-**Note:** Shortcut commands below are highlighted in **bold** (e.g., **f** is a shortcut for **f**ollow)
 
-| Command | Action |
-| --- | --- |
-| //hb on | Activate |
-| //hb off | Deactivate (note: follow will remain active) |
-| //hb refresh | Reload settings xmls in the data folder |
-| //hb status | Displays whether or not healBot is active in the chat log |
-| //hb mincure # | Set the minimum cure tier to # (default is 3) |
-| //hb reset | Reset buff & debuff monitors |
-| //hb reset buffs | Reset buff monitors |
-| //hb reset debuffs | Reset debuff monitors |
-| //hb buff charName spellName | Maintain the buff spellName on player charName |
-| //hb buff <t> spellName | Maintain the buff spellName on current target |
-| //hb cancelbuff charName spellName | Stop maintaining the buff spellName on player charName |
-| //hb cancelbuff <t> spellName | Stop maintaining the buff spellName on current target |
-| //hb bufflist listName charName | Maintain the buffs in the given list of buffs on player charName |
-| //hb bufflist listName <t> | Maintain the buffs in the given list of buffs on current target |
-| //hb **f**ollow charName | Follow player charName |
-| //hb **f**ollow <t> | Follow current target |
-| //hb **f**ollow off | Stop following |
-| //hb **f**ollow dist # | Set the follow distance to # |
-| //hb ignore charName | Ignore player charName so they won't be healed |
-| //hb unignore charName | Stop ignoring player charName (note: will not watch a player that would not otherwise be watched) |
-| //hb watch charName | Watch player charName so they will be healed |
-| //hb unwatch charName | Stop watching player charName (note: will not ignore a player that would be otherwise watched) |
-| //hb ignoretrusts on | Ignore Trust NPCs (default) |
-| //hb ignoretrusts off | Heal Trust NPCs |
+#### General Setup Commands
+| Command                                | Action                                                                                                        |
+| ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb on                                | Activate                                                                                                      |
+| //hb off                               | Deactivate (note: follow will remain active)                                                                  |
+| //hb refresh                           | Reload settings xmls in the data folder                                                                       |
+| //hb status                            | Displays whether or not healBot is active in the chat log                                                     |
+| //hb mincure (#)                       | Set the minimum cure tier to # (default is 3 - if this is spammy set it to 4 to be safe)                      |
+| //hb independent (on | off)            | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
 
-| Debugging commands | Action |
-| --- | --- |
-| //hb moveinfo on | Will display current (x,y,z) position and the amount of time spent at that location in the upper left corner. |
-| //hb moveinfo off | Hides the moveInfo display |
-| //hb packetinfo on | Adds to the chat log packet info about monitored players |
-| //hb packetinfo off | Prevents packet info from being added to the chat log |
+#### Healing / Curing
+| Command                                | Action                                                                                                        |
+| ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb ignore (charName)                 | Ignore player charName so they won't be healed                                                                |
+| //hb unignore (charName)               | Stop ignoring player charName (note: will not watch a player that would not otherwise be watched)             |
+| //hb watch (charName)                  | Watch player charName so they will be healed                                                                  |
+| //hb unwatch (charName)                | Stop watching player charName (note: will not ignore a player that would be otherwise watched)                |
+| //hb ignoretrusts on                   | Ignore Trust NPCs (default)                                                                                   |
+| //hb ignoretrusts off                  | Heal Trust NPCs                                                                                               |
+
+#### Buffs and Debuffs
+| Command                                | Action                                                                                                    |
+| ---------------------------------------| ----------------------------------------------------------------------------------------------------------|
+| //hb reset                             | Reset buff & debuff monitors                                                                              |
+| //hb reset buffs                       | Reset buff monitors                                                                                       |
+| //hb reset debuffs                     | Reset debuff monitors                                                                                     |
+| //hb buff charName spellName           | Maintain the buff spellName on player charName                                                            |
+| //hb buff (t) spellName                | Maintain the buff spellName on current target                                                             |
+| //hb cancelbuff charName spellName     | Stop maintaining the buff spellName on player charName                                                    |
+| //hb cancelbuff (t) spellName          | Stop maintaining the buff spellName on current target                                                     |
+| //hb bufflist listName charName        | Maintain the buffs in the given list of buffs on player charName                                          |
+| //hb bl listName charName              | Maintain the buffs in the given list of buffs on player charName (bufflist shorthand)                     |
+| //hb bufflist listName (t)             | Maintain the buffs in the given list of buffs on current target                                           |
+| //hb debuff spellName                  | Maintain the debuff spellName on assisted target                                                          |
+| //hb debuff rm spellName               | Removes from the list of the debuffs on assisted target                                                   |
+| //hb debuff on                         | Auto debuffs on assisted target from set list                                                             |
+| //hb debuff off                        | Stops auto debuffs on assisted target                                                                     |
+| //hb debuff ls                         | Lists Auto debuffs on assisted target                                                                     |
+| //hb db spellName                      | Maintain the debuff spellName on assisted target (shorthand for debuff)                                   |
+| //hb db rm spellName                   | Removes from the list of the debuffs on assisted target (shorthand for debuff)                            |
+| //hb db on                             | Auto debuffs on assisted target from set list (shorthand for debuff)                                      |
+| //hb db off                            | Stops auto debuffs on assisted target (shorthand for debuff)                                              |
+| //hb db ls                             | Lists Auto debuffs on assisted target (shorthand for debuff)                                              |
+
+#### Auto Assist
+| Command                            | Action                                                                                                        |
+| -----------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb assist (charName)             | Assists player charName (This Must be in proper form - Fendo not fendo)                                       |
+| //hb assist attack                 | Will engage target mob on assist                                                                              |
+| //hb assist off                    | Stop assisting player                                                                                         |
+| //hb assist resume                 | Resumes assisting                                                                                             |
+| //hb as (charName)                 | Assists player charName (This Must be in proper form - Fendo not fendo) (assist shorthand)                    |
+| //hb as attack                     | Will engage target mob on assist (assist shorthand)                                                           |
+| //hb as off                        | Stop assisting player (assist shorthand)                                                                      |
+| //hb as resume                     | Resumes assisting (assist shorthand)                                                                          |
+
+
+#### Auto Follow
+| Command                            | Action                                                                                                        |
+| -----------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb follow (charName)             | Follow player charName                                                                                        |
+| //hb follow (t)                    | Follow current target                                                                                         |
+| //hb follow off                    | Stop following                                                                                                |
+| //hb follow resume                 | Resumes following                                                                                             |
+| //hb follow dist (#)               | Set the follow distance to #                                                                                  |
+| //hb f (charName)                  | Follow player charName (follow shorthand)                                                                     |
+| //hb f (t)                         | Follow current target (follow shorthand)                                                                      |
+| //hb f off                         | Stop following (follow shorthand)                                                                             |
+| //hb f resume                      | Resumes following (follow shorthand)                                                                          |
+| //hb f dist (#)                    | Set the follow distance to # (follow shorthand)                                                               |
+
+#### Weapon Skills
+| Command                                | Action                                                                                                        |
+| ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb weaponskill use (ws name)         | Selects weaponskill to use                                                                                    |
+| //hb weaponskill hp (sign) (mob hp%)   | Sets the mob HP for weaponskill use (example < 100  or > 1)                                                   |
+| //hb weaponskill waitfor (player) (tp) | Waits for another player to use weaponskill at a certain TP                                                   |
+| //hb weaponskill nopartner             | Does not wait for another player to use weaponskill tain TP                                                   |
+| //hb ws use (ws name)                  | Selects weaponskill to use (weaponskill shorthand)                                                            |
+| //hb ws hp (sign) (mob hp%)            | Sets the mob HP for weaponskill use (example < 100  or > 1) (weaponskill shorthand)                           |
+| //hb ws waitfor (player) (tp)          | Waits for another player to use weaponskill at a certain TP (weaponskill shorthand)                           |
+| //hb ws nopartner                      | Does not wait for another player to use weaponskill tain TP (weaponskill shorthand)                           |
+
+#### Debugging Commands
+| Command                                | Action                                                                                                        |
+| ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
+| //hb moveinfo on                       | Will display current (x,y,z) position and the amount of time spent at that location in the upper left corner. |
+| //hb moveinfo off                      | Hides the moveInfo display                                                                                    |
+| //hb packetinfo on                     | Adds to the chat log packet info about monitored players                                                      |
+| //hb packetinfo off                    | Prevents packet info from being added to the chat log                                                         |
+

@@ -5,8 +5,8 @@ return {
     ['healing'] = {
         ['curaga_min_targets'] = 3,
         ['min'] = {
-            ['curaga'] = 2,
-            ['cure'] = 3,
+            ['curaga'] = 3,
+            ['cure'] = 4,
             ['waltz'] = 2,
             ['waltzga'] = 1
         }
@@ -18,28 +18,39 @@ return {
     ['textBoxes'] = {
         ['actionInfo'] = {
             ['visible'] = true,
+            ['font'] = 'Arial',
+            ['size'] = 11,
             ['x'] = 0,
             ['y'] = 0
         },
         ['actionQueue'] = {
+            ['visible'] = true,
             ['font'] = 'Arial',
             ['size'] = 10,
-            ['visible'] = true,
             ['x'] = -125,
             ['y'] = 300
         },
         ['montoredBox'] = {
+            ['visible'] = true,
             ['font'] = 'Arial',
             ['size'] = 10,
-            ['visible'] = true,
             ['x'] = -150,
             ['y'] = 600
         },
         ['moveInfo'] = {
             ['visible'] = false,
+            ['font'] = 'Arial',
+            ['size'] = 10,
             ['x'] = 0,
             ['y'] = 18
-        }
+        },
+        ['bg'] = {
+            ['alpha'] = 50,
+            ['blue'] = 0,
+            ['green'] = 0,
+            ['red'] = 0,
+            ['visible'] = true,
+        },
     },
     ['deactivateIndoors'] = true,
     ['activateOutdoors'] = false

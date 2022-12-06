@@ -107,7 +107,7 @@ return {
         ['whm'] = 4
     },
     ['players'] = {
-        ['Lorand'] = 1
+        --['Lorand'] = 1
     },
     ['status_removal'] = {
         ['addle'] = 2,
@@ -125,6 +125,7 @@ return {
         ['poison'] = 4,
         ['silence'] = 1,
         ['slow'] = 1,
-        ['weight'] = 4
+        ['weight'] = 4,
+        ['sleep'] = 1
     }
 }

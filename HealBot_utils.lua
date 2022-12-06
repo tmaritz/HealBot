@@ -11,7 +11,7 @@ utils = {normalize={}}
 local lor_res = _libs.lor.resources
 local lc_res = lor_res.lc_res
 local ffxi = _libs.lor.ffxi
-
+utils.manual_actions = T{}
 
 function utils.normalize_str(str)
     return str:lower():gsub(' ', '_'):gsub('%.', '')
@@ -32,7 +32,7 @@ function utils.normalize_action(action, action_type)
             --atcf("Searching resources for normalized name for %s [%s]", action, action_type)
             return res[action_type]:with('enn', utils.normalize_str(action))
         end
-        action = tonumber(action) 
+        action = tonumber(action)
     end
     if isnum(action) then
         return res[action_type][action]
@@ -71,10 +71,19 @@ local txtbox_cmd_map = {
     showmonitored = 'montoredBox',
 }
 
+
+function utils.is_npc(mob_id)
+    local is_pc = mob_id < 0x01000000
+    local is_pet = mob_id > 0x01000000 and mob_id % 0x1000 > 0x700
+
+    -- filter out pcs and known pet IDs
+    return not is_pc and not is_pet
+end
+
 function processCommand(command,...)
     command = command and command:lower() or 'help'
     local args = map(windower.convert_auto_trans, {...})
-    
+
     if S{'reload','unload'}:contains(command) then
         windower.send_command(('lua %s %s'):format(command, _addon.name))
     elseif command == 'refresh' then
@@ -88,7 +97,7 @@ function processCommand(command,...)
         if not validate(args, 1, 'Error: No argument specified for Disable') then return end
         disableCommand(args[1]:lower(), true)
     elseif S{'enable'}:contains(command) then
-        if not validate(args, 1, 'Error: No argument specified for Enable') then return end 
+        if not validate(args, 1, 'Error: No argument specified for Enable') then return end
         disableCommand(args[1]:lower(), false)
     elseif S{'assist','as'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (offense.assist.active and 'off' or 'resume')
@@ -214,7 +223,7 @@ function processCommand(command,...)
             atc('Error: Invalid argument specified for reset: '..arg[1])
             return
         end
-        
+
         local resetTarget
         if (args[2] ~= nil) and (args[3] ~= nil) and (args[2]:lower() == 'on') then
             local pname = utils.getPlayerName(args[3])
@@ -225,7 +234,7 @@ function processCommand(command,...)
                 return
             end
         end
-        resetTarget = resetTarget or 'ALL' 
+        resetTarget = resetTarget or 'ALL'
         local rtmsg = resetTarget or 'all monitored players'
         if b then
             buffs.resetBuffTimers(resetTarget)
@@ -297,6 +306,65 @@ function processCommand(command,...)
             utils.refresh_textBoxes()
         else
             utils.toggleVisible(boxName, args[1])
+        end
+    elseif S{'manual','m'}:contains(command) then
+        -- manually do thing.
+        local t = nil
+        local targs = L{...}
+        local action_name_candidate = windower.convert_auto_trans(targs:concat(' '))
+        local action = lor_res.action_for(action_name_candidate)
+        if not action then
+            t = targs:last()
+            targs:remove(targs:length())
+            action_name_candidate = windower.convert_auto_trans(targs:concat(' '))
+            action = lor_res.action_for(action_name_candidate)
+        end
+        if not action then
+            atc(123, 'Error: could not find action: "'..action_name_candidate..'"')
+            return
+        end
+        if not healer:can_use(action) or not utils.ready_to_use(action) then
+            atc(123, 'Error: Action cannot be used or isn\'t ready for use: '..action.en)
+            return
+        end
+
+        if t and not ffxi.target_is_valid(action, t) then
+            atc(123, 'Error: Action ('..action.en..') cannot be used on: '..t)
+            return
+        end
+        if not t then
+            local mob = windower.ffxi.get_mob_by_target('t')
+            if ffxi.target_is_valid(action, mob) then
+                if utils.is_npc(mob.id) then
+                    t = mob and mob.id
+                else
+                    t = mob and mob.name
+                end
+            end
+        end
+        if not t then
+            local mob = windower.ffxi.get_mob_by_target('me')
+            if ffxi.target_is_valid(action, mob) then
+                t = mob and mob.name
+            end
+        end
+        if t then
+            local exists_already = false
+            if hb.manual_action and hb.manual_action.action.id == action.id then
+                exists_already = true
+            end
+            for _,v in ipairs(utils.manual_actions) do
+                if v.action.id == action.id then
+                    exists_already = true
+                end
+            end
+            if exists_already then
+                atc(123, 'Error: action already in manual queue: '..action.en)
+            else
+                utils.manual_actions:append({action=action,name=t,target=t})
+            end
+        else
+            atc(123,'Error: No target provided.')
         end
     elseif S{'help','--help'}:contains(command) then
         help_text()
@@ -389,7 +457,7 @@ function utils.apply_bufflist(args)
         bl_target = 'me'
     end
     local buff_list = table.get_nested_value(hb.config.buff_lists, {job, job:lower(), mj, mj:lower()}, bl_name)
-    
+
     buff_list = buff_list or hb.config.buff_lists[bl_name]
     if buff_list ~= nil then
         for _,buff in pairs(buff_list) do
@@ -551,23 +619,74 @@ function utils.getPlayerName(name)
     return nil
 end
 
+function num_strats()
+    local p = windower.ffxi.get_player()
+    local sch_level = 0
+    if p.main_job == "SCH" then
+        sch_level = p.main_job_level
+    elseif healer.sub_job == "SCH" then
+        sch_level = p.sub_job_level
+    end
+    if sch_level == 0 then return 0 end
+
+    if sch_level < 30 then return 1
+    elseif sch_level < 50 then return 2
+    elseif sch_level < 70 then return 3
+    elseif sch_level < 90 then return 4
+    elseif p.job_points.sch.jp_spent < 550 then return 5
+    else return 6 end
+end
+
+function healer_has_buffs(buffs)
+    local buff_list = windower.ffxi.get_player().buffs
+    for _,bid in pairs(buff_list) do
+        if buffs:contains(bid) then
+            return true
+        end
+    end
+    return false
+end
+
+function utils.ready_to_use(action)
+    if light_strategems:contains(action.en) then
+        if not healer_has_buffs(light_arts) then return false end
+
+        local strats = num_strats()
+        if strats < 1 then return false end
+
+        local rc = windower.ffxi.get_ability_recasts()[action.recast_id]
+        return rc <= (4 * 60) / strats * (strats - 1)
+    elseif dark_strategems:contains(action.en) then
+        if not healer_has_buffs(dark_arts) then return false end
+
+        local strats = num_strats()
+        if strats < 1 then return false end
+
+        local rc = windower.ffxi.get_ability_recasts()[action.recast_id]
+        return rc <= (4 * 60) / strats * (strats - 1)
+
+    else
+        return healer:ready_to_use(action)
+    end
+end
+
 --==============================================================================
 --          String Formatting Functions
 --==============================================================================
 
 function utils.formatActionName(text)
     if (type(text) ~= 'string') or (#text < 1) then return nil end
-    
+
     local fromAlias = hb.config.aliases[text]
     if (fromAlias ~= nil) then
         return fromAlias
     end
-    
+
     local spell_from_lc = lc_res.spells[text:lower()]
     if spell_from_lc ~= nil then
         return spell_from_lc.en
     end
-    
+
     local parts = text:split(' ')
     if #parts >= 2 then
         local name = formatName(parts[1])
@@ -639,7 +758,7 @@ function utils.load_configs()
     local loaded = lor_settings.load('data/settings.lua', defaults)
     utils.update_settings(loaded)
     utils.refresh_textBoxes()
-    
+
     local cure_potency_defaults = {
         cure = {94,207,469,880,1110,1395},  curaga = {150,313,636,1125,1510},
         waltz = {157,325,581,887,1156},     waltzga = {160,521}
@@ -647,7 +766,7 @@ function utils.load_configs()
     local buff_lists_defaults = {       self = {'Haste II','Refresh II'},
         whm = {self={'Haste','Refresh'}}, rdm = {self={'Haste II','Refresh II'}}
     }
-    
+
     hb.config = {
         aliases = config.load('../shortcuts/data/aliases.xml'),
         mabil_debuffs = lor_settings.load('data/mabil_debuffs.lua'),
@@ -662,7 +781,7 @@ function utils.load_configs()
     hb.config.priorities.debuffs =        hb.config.priorities.debuffs or {}
     hb.config.priorities.dispel =         hb.config.priorities.dispel or {}     --not implemented yet
     hb.config.priorities.default =        hb.config.priorities.default or 5
-    
+
     --process_mabil_debuffs()
     local msg = hb.configs_loaded and 'Rel' or 'L'
     hb.configs_loaded = true
@@ -705,10 +824,43 @@ function utils.update_settings(loaded)
 end
 
 function utils.refresh_textBoxes()
+	local OurReso = windower.get_windower_settings()
     local boxes = {'actionQueue','moveInfo','actionInfo','montoredBox'}
     for _,box in pairs(boxes) do
         local bs = settings.textBoxes[box]
-        local bst = {pos={x=bs.x, y=bs.y}}
+		local bst
+		if (box == 'actionInfo' or box == 'moveInfo') then
+			bst = {pos={x=bs.x, y=bs.y}, bg={alpha=125, blue=0, green=0,red=0,visible=true}, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		elseif box == 'montoredBox' then
+			if (OurReso.x_res == 1600) then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif (OurReso.x_res == 1400) then
+				bst = {pos={x=-190, y=420}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 1275 then
+				bst = {pos={x=-235, y=420}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 1000 then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 900 then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			else
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			end
+		elseif box == 'actionQueue' then
+			if (OurReso.x_res == 1600) then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif (OurReso.x_res == 1400) then
+				bst = {pos={x=-155, y=120}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 1275 then
+				bst = {pos={x=-140, y=125}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 1000 then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			elseif OurReso.x_res == 900 then
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			else
+				bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+			end
+		end
+
         bst.flags = {right=(bs.x < 0), bottom=(bs.y < 0)}
         if (bs.font ~= nil) then
             bst.text = {font=bs.font}
@@ -717,13 +869,35 @@ function utils.refresh_textBoxes()
             bst.text = bst.text or {}
             bst.text.size = bs.size
         end
-        
+
         if (hb.txts[box] ~= nil) then
             hb.txts[box]:destroy()
         end
         hb.txts[box] = texts.new(bst)
     end
 end
+
+-- Old
+-- function utils.refresh_textBoxes()
+--     local boxes = {'actionQueue','moveInfo','actionInfo','montoredBox'}
+--     for _,box in pairs(boxes) do
+--         local bs = settings.textBoxes[box]
+--         local bst = {pos={x=bs.x, y=bs.y}}
+--         bst.flags = {right=(bs.x < 0), bottom=(bs.y < 0)}
+--         if (bs.font ~= nil) then
+--             bst.text = {font=bs.font}
+--         end
+--         if (bs.size ~= nil) then
+--             bst.text = bst.text or {}
+--             bst.text.size = bs.size
+--         end
+
+--         if (hb.txts[box] ~= nil) then
+--             hb.txts[box]:destroy()
+--         end
+--         hb.txts[box] = texts.new(bst)
+--     end
+-- end
 
 
 --==============================================================================
@@ -800,7 +974,7 @@ function help_text()
         ['dbcmd']=('d'):colorize(ac,cc)..'e'..('b'):colorize(ac,cc)..'uff [(use | rm) <spell> | on | off | ls]',
         ['blcmd']=('b'):colorize(ac,cc)..'uff'..('l'):colorize(ac,cc)..'ist <list name> (<player>)',
     }
-    
+
     for _,tbl in pairs(cmds) do
         local cmd,desc = tbl[1],tbl[2]
         local txta = cmd

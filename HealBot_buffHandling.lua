@@ -37,7 +37,7 @@ function buffs.review_active_buffs(player, buff_list)
                 buffs.register_buff(player, buff, true)
             end
         end
-        
+
         --Double check the list of what should be active
         local checklist = buffs.buffList[player.name] or {}
         local active = S(buff_list)
@@ -62,6 +62,12 @@ function buffs.review_active_buffs(player, buff_list)
                         buffs.register_buff(player, res.buffs[binfo.buff.id], false)
                     end
                 end
+            end
+        end
+        checklist = buffs.debuffList[player.name] or {}
+        for bname,binfo in pairs(checklist) do
+            if not active:contains(bname) then
+                buffs.register_debuff(player, res.buffs[bname], false)
             end
         end
     end
@@ -103,10 +109,35 @@ function buffs.getDebuffQueue()
         for id, info in pairs(debuffs) do
             local debuff = res.buffs[id]
             local removalSpellName = debuff_map[debuff.en]
+            -- handle charms
+            if settings.repose_charm and charmed:contains(debuff) and not buffs.has_buffs(targ, sleeping) and not buffs.has_buffs(targ, dots) then
+                removalSpellName = "Repose"
+            end
+            -- handle sleep, if the target is not charmed and if the target doesn't have dots that will wake him up (accounts for stoneskin)
+            if sleeping:contains(id) and not buffs.has_buffs(targ, charmed) and (not buffs.has_buffs(targ, dots) or buffs.has_buffs(targ, stoneskin)) then
+                local numCuragaRange = buffs.getRemovableDebuffCountAroundTarget(targ, 15, id)
+                if numCuragaRange >= 2 and sleeping:contains(id) then
+                    removalSpellName = "Curaga"
+                else
+                    removalSpellName = "Cure"
+                end
+            end
+            -- add to queue.
             if (removalSpellName ~= nil) then
                 if (info.attempted == nil) or ((now - info.attempted) >= 3) then
                     local spell = res.spells:with('en', removalSpellName)
                     if healer:can_use(spell) and ffxi.target_is_valid(spell, targ) then
+                        -- handle AoE
+                        if settings.aoe_na then
+                            local numAccessionRange = buffs.getRemovableDebuffCountAroundTarget(targ, 10, id)
+                            if numAccessionRange >= 3 and divine_sealable:contains(spell.en) then
+                                spell.divine_seal = true
+                            end
+                            if numAccessionRange >= 3 and accessionable:contains(spell.en) then
+                                spell.accession = true
+                            end
+                        end
+                        -- handle ignores
                         local ign = buffs.ignored_debuffs[debuff.en]
                         if not ((ign ~= nil) and ((ign.all == true) or ((ign[targ] ~= nil) and (ign[targ] == true)))) then
                             dbq:enqueue('debuff', spell, targ, debuff, ' ('..debuff.en..')')
@@ -145,7 +176,7 @@ function buffs.registerNewBuffName(targetName, bname, use)
         atc('Error: Unable to parse spell name')
         return
     end
-    
+
     local me = windower.ffxi.get_player()
     local target = ffxi.get_target(targetName)
     if target == nil then
@@ -161,19 +192,19 @@ function buffs.registerNewBuffName(targetName, bname, use)
         atc(target.name..' is an invalid target for '..action.en)
         return
     end
-    
+
     local monitoring = hb.getMonitoredPlayers()
     if (not (monitoring[target.name])) then
         monitorCommand('watch', target.name)
     end
-    
+
     buffs.buffList[target.name] = buffs.buffList[target.name] or {}
     local buff = buffs.buff_for_action(action)
     if (buff == nil) then
         atc('Unable to match the buff name to an actual buff: '..bname)
         return
     end
-    
+
     if use then
         buffs.buffList[target.name][action.en] = {['action']=action, ['maintain']=true, ['buff']=buff}
         if action.type == 'Geomancy' then
@@ -195,9 +226,9 @@ function buffs.registerIgnoreDebuff(args, ignore)
     local targetName = args[1] and args[1] or ''
     table.remove(args, 1)
     local arg_string = table.concat(args,' ')
-    
+
     local msg = ignore and 'ignore' or 'stop ignoring'
-    
+
     local dbname = debuff_casemap[arg_string:lower()]
     if (dbname ~= nil) then
         if S{'always','everyone','all'}:contains(targetName) then
@@ -252,7 +283,7 @@ function buffs.buff_for_action(action)
             --This is a hack since there isn't a 1:1 relationship between geo spells and buffs
             return {id=-action.id, en=action.en, enl=action.en}
         end
-    
+
         if buffs.action_buff_map[action.type] ~= nil then
             local mapped_id = buffs.action_buff_map[action.type][action.id]
             if mapped_id ~= nil then
@@ -264,7 +295,7 @@ function buffs.buff_for_action(action)
         end
         action_str = action.en
     end
-    
+
     if (buff_map[action_str] ~= nil) then
         if isnum(buff_map[action_str]) then
             return res.buffs[buff_map[action_str]]
@@ -305,11 +336,11 @@ end
 --]]
 function buffs.register_debuff(target, debuff, gain, action)
     debuff = utils.normalize_action(debuff, 'buffs')
-    
+
     if debuff == nil then
         return              --hack
     end
-    
+
     if debuff.enn == 'slow' then
         buffs.register_buff(target, 'Haste', false)
         buffs.register_buff(target, 'Flurry', false)
@@ -323,7 +354,7 @@ function buffs.register_debuff(target, debuff, gain, action)
     end
     local debuff_tbl = is_enemy and offense.mobs[tid] or buffs.debuffList[tname]
     local msg = is_enemy and 'mob 'or ''
-    
+
     if gain then
         if is_enemy then
             if offense.ignored[debuff.enn] ~= nil then return end
@@ -368,6 +399,13 @@ end
         -- end
     -- end
 -- end)
+function buffs.process_buff_packet(target_id, status)
+    if not target_id then return end
+    local target = windower.ffxi.get_mob_by_id(target_id)
+    if not target then return end
+
+    buffs.review_active_buffs(target, status)
+end
 
 
 function buffs.register_buff(target, buff, gain, action)
@@ -387,12 +425,12 @@ function buffs.register_buff(target, buff, gain, action)
             return
         end
     end
-    
+
     local nbuff = utils.normalize_action(buff, 'buffs')
     if nbuff == nil then
         atcfs(123,'Error normalizing buff: %s', buff)
     end
-    
+
     if action ~= nil then
         buffs.action_buff_map[action.type] = buffs.action_buff_map[action.type] or {}
         if buffs.action_buff_map[action.type][action.id] == nil then
@@ -400,7 +438,7 @@ function buffs.register_buff(target, buff, gain, action)
             buffs.action_buff_map:save(true)
         end
     end
-    
+
     local tid, tname = target.id, target.name
     local is_enemy = (target.spawn_type == 16)
     local bkey, msg = nbuff.id, ''
@@ -434,7 +472,7 @@ function buffs.register_buff(target, buff, gain, action)
             end
             atcd(('Detected %sbuff: %s wore off %s [%s]'):format(msg, nbuff.en, tname, tid))
         end
-    end 
+    end
 end
 --buffs.register_buff = traceable(_register_buff)
 
@@ -469,6 +507,31 @@ function buffs.resetBuffTimers(player, exclude)
             buffs.buffList[player][buffName]['landed'] = nil
         end
     end
+end
+
+function buffs.getRemovableDebuffCountAroundTarget(target, dist, debuff)
+    local c = 0
+    local party = ffxi.party_member_names()
+    local targetMob = windower.ffxi.get_mob_by_name(target)
+    for watchPerson,_ in pairs(hb.getMonitoredPlayers()) do
+        local mob = windower.ffxi.get_mob_by_name(watchPerson)
+        local dx = targetMob.x - mob.x
+        local dy = targetMob.y - mob.y
+        if buffs.debuffList[watchPerson] and buffs.debuffList[watchPerson][debuff] and dx^2+dy^2 < dist^2 then
+            -- watched person has debuff and is within distance.
+            c = c + 1
+        end
+    end
+    return c
+end
+
+function buffs.has_buffs(target, buff_list)
+    for id, info in pairs(buffs.debuffList[target]) do
+        if buff_list:contains(id) then
+            return true
+        end
+    end
+    return false
 end
 
 return buffs

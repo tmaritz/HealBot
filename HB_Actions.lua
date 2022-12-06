@@ -29,7 +29,19 @@ end
 --]]
 function actions.get_defensive_action()
 	local action = {}
-	
+
+    if hb.manual_action then
+        action.manual = hb.manual_action
+    elseif not utils.manual_actions:empty() then
+        for _,a in ipairs(utils.manual_actions) do
+            local_queue_insert(a.action.en, a.target)
+        end
+        local ma = utils.manual_actions[1]
+        hb.manual_action = ma
+        utils.manual_actions:remove(1)
+        action.manual = ma
+    end
+
 	if (not settings.disable.cure) then
 		local cureq = CureUtils.get_cure_queue()
 		while (not cureq:empty()) do
@@ -60,10 +72,12 @@ function actions.get_defensive_action()
 			end
 		end
 	end
-	
+
 	local_queue_disp()
-	
-	if (action.cure ~= nil) then
+
+    if action.manual ~= nil then
+        return action.manual
+	elseif (action.cure ~= nil) then
 		if (action.debuff ~= nil) and (action.debuff.action.en == 'Paralyna') and (action.debuff.name == healer.name) then
 			return action.debuff
 		elseif (action.debuff ~= nil) and ((action.debuff.prio + 2) < action.cure.prio) then
@@ -85,6 +99,10 @@ end
 
 
 function actions.take_action(player, partner, targ)
+    if hb.aoe_action then
+        healer:take_action(hb.aoe_action)
+        return
+    end
     buffs.checkOwnBuffs()
     local_queue_reset()
     local action = actions.get_defensive_action()
@@ -96,7 +114,25 @@ function actions.take_action(player, partner, targ)
         elseif (action.type == 'debuff') then
             buffs.debuffList[action.name][action.debuff.id].attempted = os.clock()
         end
+        if action.action.divine_seal then
+            local divine_seal = lor_res.action_for("Divine Seal")
+            if healer:can_use(divine_seal) and utils.ready_to_use(divine_seal) then
+                healer:take_action({action=divine_seal}, healer.name)
+                hb.aoe_action = action
+                return true
+            end
+        end
+        if action.action.accession then
+            local accession = lor_res.action_for("Accession")
+            if healer:can_use(accession) and utils.ready_to_use(accession) then
+                healer:take_action({action=accession}, healer.name)
+                hb.aoe_action = action
+                return true
+            end
+        end
+
         healer:take_action(action)
+        return true
     else                        --Otherwise, there may be an offensive action
         if (targ ~= nil) or hb.modes.independent then
             local self_engaged = (player.status == 1)
@@ -105,22 +141,42 @@ function actions.take_action(player, partner, targ)
                 if (player.target_index == partner.target_index) then
                     if offense.assist.engage and partner_engaged and (not self_engaged) then
                         healer:send_cmd('input /attack on')
+                        healer:take_action(actions.face_target())
+                        return true
                     else
                         healer:take_action(actions.get_offensive_action(player), '<t>')
+                        return true
                     end
                 else                            --Different targets
                     if partner_engaged and (not self_engaged) then
                         healer:send_cmd('input /as '..offense.assist.name)
+                        return true
                     end
                 end
             elseif self_engaged and hb.modes.independent then
                 healer:take_action(actions.get_offensive_action(player), '<t>')
+                return true
             end
             offense.cleanup()
         end
     end
+    return false
 end
 
+function actions.face_target()
+    if (player == nil) then
+        player = windower.ffxi.get_player()
+    end
+    mob = windower.ffxi.get_mob_by_target("t")
+    if (not mob) then
+        return
+    end
+
+    local player_body = windower.ffxi.get_mob_by_id(player.id)
+    local angle = (math.atan2((mob.y - player_body.y), (mob.x - player_body.x))*180/math.pi)*-1
+    local rads = angle:radian()
+    windower.ffxi.turn(rads)
+end
 
 --[[
 	Builds an action queue for offensive actions.
@@ -131,7 +187,7 @@ function actions.get_offensive_action(player)
 	local target = windower.ffxi.get_mob_by_target()
     if target == nil then return nil end
     local action = {}
-    
+
     --Prioritize debuffs over nukes/ws
     local dbuffq = offense.getDebuffQueue(player, target)
     while not dbuffq:empty() do
@@ -141,17 +197,18 @@ function actions.get_offensive_action(player)
             action.db = dbact
         end
     end
-    
+
     local_queue_disp()
     if action.db ~= nil then
         return action.db
     end
-    
+
+    -- look into this for some single named Weaponskills (Moonlight and starlight)
     if (not settings.disable.ws) and (settings.ws ~= nil) and healer:ready_to_use(lor_res.action_for(settings.ws.name)) then
         local sign = settings.ws.sign or '>'
         local hp = settings.ws.hp or 0
         local hp_ok = ((sign == '<') and (target.hpp <= hp)) or ((sign == '>') and (target.hpp >= hp))
-        
+
         local partner_ok = true
         if (settings.ws.partner ~= nil) then
             local pname = settings.ws.partner.name
@@ -164,7 +221,7 @@ function actions.get_offensive_action(player)
                 atc(123,'Unable to locate weaponskill partner '..pname)
             end
         end
-        
+
         if (hp_ok and partner_ok) then
             return {action=lor_res.action_for(settings.ws.name),name='<t>'}
         end
@@ -182,7 +239,7 @@ function actions.get_offensive_action(player)
             end
         end
     end
-    
+
     atcd('get_offensive_action: no offensive actions to perform')
 	return nil
 end

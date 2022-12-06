@@ -23,6 +23,18 @@ function handle_incoming_chunk(id, data)
         local monitored_ids = hb.getMonitoredIds()
         local ai = get_action_info(id, data)
         healer:update_status(id, ai)
+        if ai.actor_id == healer.id and hb.manual_action and not healer:is_acting() then
+            if ai.param == hb.manual_action.action.id or (ai.targets and ai.targets[1].actions[1].param == hb.manual_action.action.id) then
+                hb.manual_action = nil
+                atcd("cleared manual_action")
+            end
+        end
+        if ai.actor_id == healer.id and hb.aoe_action then
+            if ai.param == hb.aoe_action.action.id or (ai.targets and ai.targets[1].actions[1].param == hb.aoe_action.action.id) then
+                hb.aoe_action = nil
+                atcd("cleared aoe_action")
+            end
+        end
         if id == 0x28 then
             processAction(ai, monitored_ids)
         elseif id == 0x29 then
@@ -46,6 +58,23 @@ function handle_incoming_chunk(id, data)
             local person = windower.ffxi.get_mob_by_id(parsed.ID)
             --atc('Caught char update packet for '..person.name)
         end
+    elseif id == 0x076 then
+        for  k = 0, 4 do
+            local id = data:unpack('I', k*48+5)
+            local new_buffs_list = {}
+
+            local new_i = 0
+            if id ~= 0 then
+                for i = 1, 32 do
+                    local buff = data:byte(k*48+5+16+i-1) + 256*( math.floor( data:byte(k*48+5+8+ math.floor((i-1)/4)) / 4^((i-1)%4) )%4) -- Credit: Byrth, GearSwap
+                    if buff == 255 then
+                        break
+                    end
+                    new_buffs_list[i] = buff
+                end
+            end
+            buffs.process_buff_packet(id, new_buffs_list)
+        end
     end
 end
 
@@ -59,14 +88,14 @@ function processMessage(ai, monitored_ids)
     if monitored_ids[ai.actor_id] or monitored_ids[ai.target_id] then
         if not (messages_blacklist:contains(ai.message_id)) then
             local target = windower.ffxi.get_mob_by_id(ai.target_id)
-            
+
             if hb.modes.showPacketInfo then
                 local actor = windower.ffxi.get_mob_by_id(ai.actor_id)
                 local msg = res.action_messages[ai.message_id] or {en='???'}
                 local params = (', '):join(tostring(ai.param_1), tostring(ai.param_2), tostring(ai.param_3))
                 atcfs('[0x29]Message(%s): %s { %s } %s %s | %s', ai.message_id, actor.name, params, rarr, target.name, msg.en)
             end
-            
+
             if messages_wearOff:contains(ai.message_id) then
                 if enfeebling:contains(ai.param_1) then
                     buffs.register_debuff(target, res.buffs[ai.param_1], false)
@@ -89,7 +118,7 @@ function processAction(ai, monitored_ids)
         if monitored_ids[ai.actor_id] or monitored_ids[targ.id] then
             local actor = windower.ffxi.get_mob_by_id(ai.actor_id)
             local target = windower.ffxi.get_mob_by_id(targ.id)
-            
+
             for _,tact in pairs(targ.actions) do
                 if not messages_blacklist:contains(tact.message_id) then
                     if (tact.message_id == 0) and (ai.actor_id == healer.id) then
@@ -101,7 +130,7 @@ function processAction(ai, monitored_ids)
                             buffs.register_buff(target, healer.geo.latest, true)
                         end
                     end
-                
+
                     -- if (tact.message_id == 0) and (actor.name == healer.name) then
                         -- local spell = res.spells[ai.param]
                         -- if spell ~= nil then
@@ -110,12 +139,12 @@ function processAction(ai, monitored_ids)
                             -- end
                         -- end
                     -- end
-                
+
                     if hb.modes.showPacketInfo then
                         local msg = res.action_messages[tact.message_id] or {en='???'}
                         atcfs('[0x28]Action(%s): %s { %s } %s %s { %s } | %s', tact.message_id, actor.name, ai.param, rarr, target.name, tact.param, msg.en)
                     end
-                    
+
                     registerEffect(ai, tact, actor, target, monitored_ids)
                 end--/message ID not on blacklist
             end--/loop through targ's actions
@@ -151,7 +180,7 @@ function registerEffect(ai, tact, actor, target, monitored_ids)
         elseif msg_gain_ws:contains(tact.message_id) then
             cause = res.weapon_skills[ai.param]
         end
-        
+
         local buff = res.buffs[tact.param]
         if enfeebling:contains(tact.param) then
             buffs.register_debuff(target, buff, true, cause)
