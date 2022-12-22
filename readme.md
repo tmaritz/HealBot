@@ -1,13 +1,13 @@
 # HealBot
 
-## Mashup between Original and Updated Versions as of 12/06/2022
+## Mashup between Original and Updated Versions as of 12/15/2021
 
 ## Original:
-#### https://github.com/lorand-ffxi/HealBot (Updated 05/22/2018)
+### https://github.com/lorand-ffxi/HealBot
 
 ## Additions:
-#### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
-#### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
+### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
+### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
 
 ## Update: HealBot now depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
 
@@ -94,14 +94,19 @@ Place the healBot folder in .../Windower/addons/
 | //hb independent (on | off)            | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
 
 #### Healing / Curing
-| Command                                | Action                                                                                                        |
-| ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
-| //hb ignore (charName)                 | Ignore player charName so they won't be healed                                                                |
-| //hb unignore (charName)               | Stop ignoring player charName (note: will not watch a player that would not otherwise be watched)             |
-| //hb watch (charName)                  | Watch player charName so they will be healed                                                                  |
-| //hb unwatch (charName)                | Stop watching player charName (note: will not ignore a player that would be otherwise watched)                |
-| //hb ignoretrusts on                   | Ignore Trust NPCs (default)                                                                                   |
-| //hb ignoretrusts off                  | Heal Trust NPCs                                                                                               |
+| Command                                         | Action                                                                                               |
+| ------------------------------------------------| -----------------------------------------------------------------------------------------------------|
+| //hb ignore (charName)                          | Ignore player charName so they won't be healed                                                       |
+| //hb unignore (charName)                        | Stop ignoring player charName (note: will not watch a player that would not otherwise be watched)    |
+| //hb disable (actionType)                       | Disables actions of a given type (cure, buff, na)                                                    |
+| //hb enable (actionType)                        | Enables actions of a given type (cure, buff, na)                                                     |
+| //hb disable (actionType)                       | Disables actions of a given type (cure, buff, na)                                                    |
+| //hb ignore_debuff (player/always) (debuff)     | Ignores when the given debuff is cast on the given player or everyone                                |
+| //hb unignore_debuff (player/always) (debuff)   | Stops ignoring when the given debuff is cast on the given player or everyone                         |
+| //hb watch (charName)                           | Watch player charName so they will be healed                                                         |
+| //hb unwatch (charName)                         | Stop watching player charName (note: will not ignore a player that would be otherwise watched)       |
+| //hb ignoretrusts on                            | Ignore Trust NPCs (default)                                                                          |
+| //hb ignoretrusts off                           | Heal Trust NPCs                                                                                      |
 
 #### Buffs and Debuffs
 | Command                                | Action                                                                                                    |
@@ -158,10 +163,12 @@ Place the healBot folder in .../Windower/addons/
 | Command                                | Action                                                                                                        |
 | ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
 | //hb weaponskill use (ws name)         | Selects weaponskill to use                                                                                    |
+| //hb weaponskill tp (number 1000-2999) | Selects min tp for a weaponskill                                                                              |
 | //hb weaponskill hp (sign) (mob hp%)   | Sets the mob HP for weaponskill use (example < 100  or > 1)                                                   |
 | //hb weaponskill waitfor (player) (tp) | Waits for another player to use weaponskill at a certain TP                                                   |
 | //hb weaponskill nopartner             | Does not wait for another player to use weaponskill tain TP                                                   |
 | //hb ws use (ws name)                  | Selects weaponskill to use (weaponskill shorthand)                                                            |
+| //hb ws tp (number 1000-2999)          | Selects min tp for a weaponskill (weaponskill shorthand)                                                      |
 | //hb ws hp (sign) (mob hp%)            | Sets the mob HP for weaponskill use (example < 100  or > 1) (weaponskill shorthand)                           |
 | //hb ws waitfor (player) (tp)          | Waits for another player to use weaponskill at a certain TP (weaponskill shorthand)                           |
 | //hb ws nopartner                      | Does not wait for another player to use weaponskill tain TP (weaponskill shorthand)                           |
@@ -174,9 +181,3 @@ Place the healBot folder in .../Windower/addons/
 | //hb packetinfo on                     | Adds to the chat log packet info about monitored players                                                      |
 | //hb packetinfo off                    | Prevents packet info from being added to the chat log                                                         |
 
-
-## Todos:
-- Add in TP for a single user for WS when no parter is around.
-- Fix certain single worded weaponskills (Starlight, Moonlight) from not being used.
-- Add in a min / max distance from target mob potentially. This mostly could be handled by follow distance but doesn't account for target moving.
-- There are other buff sets I have not tested at all - GEO SMN BRD COR - I generally rely on other addons for that or Gearswap.

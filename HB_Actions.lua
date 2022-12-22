@@ -1,7 +1,7 @@
 --==============================================================================
 --[[
-	Author: Ragnarok.Lorand
-	HealBot action handling functions
+    Author: Ragnarok.Lorand
+    HealBot action handling functions
 --]]
 --==============================================================================
 
@@ -25,10 +25,10 @@ end
 
 
 --[[
-	Builds an action queue for defensive actions.  Returns the action deemed most important at the time.
+    Builds an action queue for defensive actions.  Returns the action deemed most important at the time.
 --]]
 function actions.get_defensive_action()
-	local action = {}
+    local action = {}
 
     if hb.manual_action then
         action.manual = hb.manual_action
@@ -42,59 +42,59 @@ function actions.get_defensive_action()
         action.manual = ma
     end
 
-	if (not settings.disable.cure) then
-		local cureq = CureUtils.get_cure_queue()
-		while (not cureq:empty()) do
-			local cact = cureq:pop()
+    if (not settings.disable.cure) then
+        local cureq = CureUtils.get_cure_queue()
+        while (not cureq:empty()) do
+            local cact = cureq:pop()
             local_queue_insert(cact.action.en, cact.name)
-			if (action.cure == nil) and healer:in_casting_range(cact.name) then
-				action.cure = cact
-			end
-		end
-	end
-	if (not settings.disable.na) then
-		local dbuffq = buffs.getDebuffQueue()
-		while (not dbuffq:empty()) do
-			local dbact = dbuffq:pop()
+            if (action.cure == nil) and healer:in_casting_range(cact.name) then
+                action.cure = cact
+            end
+        end
+    end
+    if (not settings.disable.na) then
+        local dbuffq = buffs.getDebuffQueue()
+        while (not dbuffq:empty()) do
+            local dbact = dbuffq:pop()
             local_queue_insert(dbact.action.en, dbact.name)
-			if (action.debuff == nil) and healer:in_casting_range(dbact.name) and healer:ready_to_use(dbact.action) then
-				action.debuff = dbact
-			end
-		end
-	end
-	if (not settings.disable.buff) then
-		local buffq = buffs.getBuffQueue()
-		while (not buffq:empty()) do
-			local bact = buffq:pop()
+            if (action.debuff == nil) and healer:in_casting_range(dbact.name) and healer:ready_to_use(dbact.action) then
+                action.debuff = dbact
+            end
+        end
+    end
+    if (not settings.disable.buff) then
+        local buffq = buffs.getBuffQueue()
+        while (not buffq:empty()) do
+            local bact = buffq:pop()
             local_queue_insert(bact.action.en, bact.name)
-			if (action.buff == nil) and healer:in_casting_range(bact.name) and healer:ready_to_use(bact.action) then
-				action.buff = bact
-			end
-		end
-	end
+            if (action.buff == nil) and healer:in_casting_range(bact.name) and healer:ready_to_use(bact.action) then
+                action.buff = bact
+            end
+        end
+    end
 
-	local_queue_disp()
+    local_queue_disp()
 
     if action.manual ~= nil then
         return action.manual
-	elseif (action.cure ~= nil) then
-		if (action.debuff ~= nil) and (action.debuff.action.en == 'Paralyna') and (action.debuff.name == healer.name) then
-			return action.debuff
-		elseif (action.debuff ~= nil) and ((action.debuff.prio + 2) < action.cure.prio) then
-			return action.debuff
-		elseif (action.buff ~= nil) and ((action.buff.prio + 2) < action.cure.prio) then
-			return action.buff
-		end
-		return action.cure
-	elseif (action.debuff ~= nil) then
-		if (action.buff ~= nil) and (action.buff.prio < action.debuff.prio) then
-			return action.buff
-		end
-		return action.debuff
-	elseif (action.buff ~= nil) then
-		return action.buff
-	end
-	return nil
+    elseif (action.cure ~= nil) then
+        if (action.debuff ~= nil) and (action.debuff.action.en == 'Paralyna') and (action.debuff.name == healer.name) then
+            return action.debuff
+        elseif (action.debuff ~= nil) and ((action.debuff.prio + 2) < action.cure.prio) then
+            return action.debuff
+        elseif (action.buff ~= nil) and ((action.buff.prio + 2) < action.cure.prio) then
+            return action.buff
+        end
+        return action.cure
+    elseif (action.debuff ~= nil) then
+        if (action.buff ~= nil) and (action.buff.prio < action.debuff.prio) then
+            return action.buff
+        end
+        return action.debuff
+    elseif (action.buff ~= nil) then
+        return action.buff
+    end
+    return nil
 end
 
 
@@ -144,7 +144,21 @@ function actions.take_action(player, partner, targ)
                         healer:take_action(actions.face_target())
                         return true
                     else
-                        healer:take_action(actions.get_offensive_action(player), '<t>')
+
+                        local offensive_action = actions.get_offensive_action(player)
+                        if offensive_action ~= nil then
+                            atcd(123, 'Offensive Action Current action: '..tostring(offensive_action.action.en))
+                            atcd(123, 'Offensive Action Current action target: '..tostring(offensive_action.name))
+                            if offensive_action.name == '<me>' then
+                                healer:take_action(offensive_action, '<me>')
+                            else
+                                healer:take_action(offensive_action, '<t>')
+                            end
+                        end
+
+                        -- Old Hardcoded method
+                        --healer:take_action(actions.get_offensive_action(player), '<t>')
+
                         return true
                     end
                 else                            --Different targets
@@ -154,7 +168,19 @@ function actions.take_action(player, partner, targ)
                     end
                 end
             elseif self_engaged and hb.modes.independent then
-                healer:take_action(actions.get_offensive_action(player), '<t>')
+                local independent_offensive_action = actions.get_offensive_action(player)
+                if independent_offensive_action ~= nil then
+                    atcd(123, 'Independent Offensive Current action: '..tostring(independent_offensive_action.action.en))
+                    atcd(123, 'Independent Offensive Current action target: '..tostring(independent_offensive_action.name))
+                    if independent_offensive_action.name == '<me>' then
+                        healer:take_action(independent_offensive_action, '<me>')
+                    else
+                        healer:take_action(independent_offensive_action, '<t>')
+                    end
+                end
+
+                -- Old Hardcoded method
+                --healer:take_action(actions.get_offensive_action(player), '<t>')
                 return true
             end
             offense.cleanup()
@@ -178,13 +204,25 @@ function actions.face_target()
     windower.ffxi.turn(rads)
 end
 
+function actions.is_self_weaponskill(weaponskill_name)
+    local is_self_weaponskill = false
+    local self_target_ws = {'dagan', 'starlight', 'moonlight', 'myrkr'}
+    for _, v in ipairs(self_target_ws) do
+        if v == string.lower(weaponskill_name)then
+            is_self_weaponskill = true
+            break
+        end
+    end
+    return is_self_weaponskill
+end
+
 --[[
-	Builds an action queue for offensive actions.
+    Builds an action queue for offensive actions.
     Returns the action deemed most important at the time.
 --]]
 function actions.get_offensive_action(player)
-	player = player or windower.ffxi.get_player()
-	local target = windower.ffxi.get_mob_by_target()
+    player = player or windower.ffxi.get_player()
+    local target = windower.ffxi.get_mob_by_target()
     if target == nil then return nil end
     local action = {}
 
@@ -192,7 +230,7 @@ function actions.get_offensive_action(player)
     local dbuffq = offense.getDebuffQueue(player, target)
     while not dbuffq:empty() do
         local dbact = dbuffq:pop()
-        local_queue_insert(dbact.action.en, target.name)
+        local_queue_insert(dbact.action.en, target)
         if (action.db == nil) and healer:in_casting_range(target) and healer:ready_to_use(dbact.action) then
             action.db = dbact
         end
@@ -209,6 +247,9 @@ function actions.get_offensive_action(player)
         local hp = settings.ws.hp or 0
         local hp_ok = ((sign == '<') and (target.hpp <= hp)) or ((sign == '>') and (target.hpp >= hp))
 
+        local player = windower.ffxi.get_player()
+        local setting_self_tp = settings.ws.self.tp or 1000
+
         local partner_ok = true
         if (settings.ws.partner ~= nil) then
             local pname = settings.ws.partner.name
@@ -223,7 +264,16 @@ function actions.get_offensive_action(player)
         end
 
         if (hp_ok and partner_ok) then
-            return {action=lor_res.action_for(settings.ws.name),name='<t>'}
+            if settings.ws.name ~= nil then
+                if player.vitals.tp > setting_self_tp then
+                    if actions.is_self_weaponskill(settings.ws.name) == true  then
+                        --atc(123,'Attempting a self targetting WS '..settings.ws.name)
+                        return {action=lor_res.action_for(settings.ws.name),name='<me>'}
+                    else
+                        return {action=lor_res.action_for(settings.ws.name),name='<t>'}
+                    end
+                end
+            end
         end
     elseif (not settings.disable.spam) and settings.spam.active and (settings.spam.name ~= nil) then
         local spam_action = lor_res.action_for(settings.spam.name)
@@ -241,7 +291,7 @@ function actions.get_offensive_action(player)
     end
 
     atcd('get_offensive_action: no offensive actions to perform')
-	return nil
+    return nil
 end
 
 return actions

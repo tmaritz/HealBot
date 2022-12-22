@@ -38,6 +38,15 @@ cu.waltzga = {
     [1] = {id=195,  en='Divine Waltz',      res=res.job_abilities[195]},
     [2] = {id=262,  en='Divine Waltz II',   res=res.job_abilities[262]}
 }
+cu.blue = {
+    [1] = {id=578,  en='Wild Carrot',       res=res.spells[578]},
+    [2] = {id=593,  en='Magic Fruit',       res=res.spells[593]},
+    [3] = {id=658,  en='Plenilune Embrace', res=res.spells[658]},
+}
+cu.bluega = {
+    [1] = {id=581,  en='Healing Breeze',    res=res.spells[581]},
+    [2] = {id=690,  en='White Wind',        res=res.spells[690]},
+}
 
 function cu.init_cure_potencies()
     local potency_table = hb.config.cure_potency[healer.name] and hb.config.cure_potency[healer.name][healer.main_job] or hb.config.cure_potency.default
@@ -250,7 +259,7 @@ end
 --]]
 function cu.get_usable_cure(orig_tier, cure_type)
     if orig_tier < settings.healing.min[cure_type] then return nil end
-    
+
     local player = windower.ffxi.get_player()
     local mult = cu.get_multiplier(cure_type)
     local _p, recasts
@@ -261,7 +270,7 @@ function cu.get_usable_cure(orig_tier, cure_type)
         _p = 'mp'
         recasts = windower.ffxi.get_spell_recasts()
     end
-    
+
     local tier = orig_tier
     while tier > 1 do
         local action = cu[cure_type][tier].res
