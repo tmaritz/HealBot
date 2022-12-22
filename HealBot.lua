@@ -58,20 +58,20 @@ local pm_keys = {
     {'p0','p1','p2','p3','p4','p5'}, {'a10','a11','a12','a13','a14','a15'}, {'a20','a21','a22','a23','a24','a25'}
 }
 
--- San d'Oria(294):		149,572 - Defense Down, Avoidance Down
--- Bastok(295):			13,21 - Slow, Addle
--- Windurst(296):		168 - Inhibit TP
--- Jeuno(297):			31 - Plague
--- Dia, Bio all zones: 	134,135
+-- San d'Oria(294):        149,572 - Defense Down, Avoidance Down
+-- Bastok(295):            13,21 - Slow, Addle
+-- Windurst(296):          168 - Inhibit TP
+-- Jeuno(297):             31 - Plague
+-- Dia, Bio all zones:     134,135
 
 --dyna_aura_ids = S{572,149,13,21,168,31,134,135} -- Auras
 --gaol_aura_ids = S{146,147,148,149,167,404,174,175,136,137,138,139,140,141,142} -- "DOWN" Aura + Stat down
 --gaes_fete_debuff_ids = S{29,557,558,559,560,561,562,563,564} -- Auras [Mute + 8 Down]
-dyna_sandoria_aura = {'defense down','dia','bio'}	-- 'avoidance down', NOT CODED
+dyna_sandoria_aura = {'defense down','dia','bio'}    -- 'avoidance down', NOT CODED
 dyna_bastok_aura = {'slow','addle','dia','bio'}
 dyna_windurst_aura = {'inhibit tp','dia','bio'}
 dyna_jeuno_aura = {'plague','dia','bio'}
-dyna_auras = {'defense down','slow','addle','inhibit tp','plague','dia','bio'}	-- 'avoidance down', NOT CODED
+dyna_auras = {'defense down','slow','addle','inhibit tp','plague','dia','bio'}    -- 'avoidance down', NOT CODED
 dyna_zones = S{294,295,296,297}
 
 gaol_zones = S{279,298}
@@ -96,53 +96,53 @@ hb._events['load'] = windower.register_event('load', function()
 
     local zone_info = windower.ffxi.get_info()
     if gaol_zones:contains(zone_info.zone) then
-		coroutine.sleep(10)
-		local current_buffs = windower.ffxi.get_player()["buffs"]
-		local SJRestrict = false
+        coroutine.sleep(10)
+        local current_buffs = windower.ffxi.get_player()["buffs"]
+        local SJRestrict = false
 
-		for key,val in pairs(current_buffs) do
-			if val == 157 then -- SJ Restriction
-				SJRestrict = true
-			end
-		end
+        for key,val in pairs(current_buffs) do
+            if val == 157 then -- SJ Restriction
+                SJRestrict = true
+            end
+        end
 
-		if SJRestrict == true then
-			windower.add_to_chat(122,'Loaded HB in Sheol: Gaol, disabling HB debuff removal on auras.')
-			for i, debuff_name in ipairs(gaol_auras) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
-		end
-	elseif zone_info.zone == 294 then -- San d'Oria
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - San d\'Oria, disabling HB debuff removal on auras.')
-		for i, debuff_name in ipairs(dyna_sandoria_aura) do
-			windower.send_command('hb ignore_debuff all ' .. debuff_name)
-		end
-	elseif zone_info.zone == 295 then -- Bastok
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Bastok, disabling HB debuff removal on auras.')
-		for i, debuff_name in ipairs(dyna_bastok_aura) do
-			windower.send_command('hb ignore_debuff all ' .. debuff_name)
-		end
-	elseif zone_info.zone == 296 then -- Windurst
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Windurst, disabling HB debuff removal on auras.')
-		for i, debuff_name in ipairs(dyna_windurst_aura) do
-			windower.send_command('hb ignore_debuff all ' .. debuff_name)
-		end
-	elseif zone_info.zone == 297 then -- Jeuno
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Jeuno, disabling HB debuff removal on auras.')
-		for i, debuff_name in ipairs(dyna_jeuno_aura) do
-			windower.send_command('hb ignore_debuff all ' .. debuff_name)
-		end
-	elseif zone_info.zone == 255 then -- Abyssea - Empyreal Paradox
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Loaded HB in Abyssea - Empyreal Paradox, disabling HB debuff on stat down.')
-		for i, debuff_name in ipairs(shinryu_debuffs) do
-			windower.send_command('hb ignore_debuff all ' .. debuff_name)
-		end
-	end
+        if SJRestrict == true then
+            windower.add_to_chat(122,'Loaded HB in Sheol: Gaol, disabling HB debuff removal on auras.')
+            for i, debuff_name in ipairs(gaol_auras) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
+        end
+    elseif zone_info.zone == 294 then -- San d'Oria
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - San d\'Oria, disabling HB debuff removal on auras.')
+        for i, debuff_name in ipairs(dyna_sandoria_aura) do
+            windower.send_command('hb ignore_debuff all ' .. debuff_name)
+        end
+    elseif zone_info.zone == 295 then -- Bastok
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Bastok, disabling HB debuff removal on auras.')
+        for i, debuff_name in ipairs(dyna_bastok_aura) do
+            windower.send_command('hb ignore_debuff all ' .. debuff_name)
+        end
+    elseif zone_info.zone == 296 then -- Windurst
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Windurst, disabling HB debuff removal on auras.')
+        for i, debuff_name in ipairs(dyna_windurst_aura) do
+            windower.send_command('hb ignore_debuff all ' .. debuff_name)
+        end
+    elseif zone_info.zone == 297 then -- Jeuno
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Loaded HB in Dynamis Divergence - Jeuno, disabling HB debuff removal on auras.')
+        for i, debuff_name in ipairs(dyna_jeuno_aura) do
+            windower.send_command('hb ignore_debuff all ' .. debuff_name)
+        end
+    elseif zone_info.zone == 255 then -- Abyssea - Empyreal Paradox
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Loaded HB in Abyssea - Empyreal Paradox, disabling HB debuff on stat down.')
+        for i, debuff_name in ipairs(shinryu_debuffs) do
+            windower.send_command('hb ignore_debuff all ' .. debuff_name)
+        end
+    end
 
 end)
 
@@ -165,53 +165,53 @@ hb._events['zone'] = windower.register_event('zone change', function(new_id, old
     if zone_info ~= nil then
         if zone_info.zone == 131 then
             windower.send_command('lua unload healBot')
-		elseif gaol_zones:contains(zone_info.zone) then
-			coroutine.sleep(10)
-			local current_buffs = windower.ffxi.get_player()["buffs"]
-			local SJRestrict = false
+        elseif gaol_zones:contains(zone_info.zone) then
+            coroutine.sleep(10)
+            local current_buffs = windower.ffxi.get_player()["buffs"]
+            local SJRestrict = false
 
-			for key,val in pairs(current_buffs) do
-				if val == 157 then -- SJ Restriction
-					SJRestrict = true
-				end
-			end
+            for key,val in pairs(current_buffs) do
+                if val == 157 then -- SJ Restriction
+                    SJRestrict = true
+                end
+            end
 
-			if SJRestrict == true then
-				windower.add_to_chat(122,'In Sheol: Gaol, disabling HB debuff removal on auras.')
-				for i, debuff_name in ipairs(gaol_auras) do
-					windower.send_command('hb ignore_debuff all ' .. debuff_name)
-				end
-			end
-		elseif zone_info.zone == 294 then -- San d'Oria
-			coroutine.sleep(5)
-			windower.add_to_chat(122,'In Dynamis Divergence - San d\'Oria, disabling HB debuff removal on auras.')
-			for i, debuff_name in ipairs(dyna_sandoria_aura) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
-		elseif zone_info.zone == 295 then -- Bastok
-			coroutine.sleep(5)
-			windower.add_to_chat(122,'In Dynamis Divergence - Bastok, disabling HB debuff removal on auras.')
-			for i, debuff_name in ipairs(dyna_bastok_aura) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
-		elseif zone_info.zone == 296 then -- Windurst
-			coroutine.sleep(5)
-			windower.add_to_chat(122,'In Dynamis Divergence - Windurst, disabling HB debuff removal on auras.')
-			for i, debuff_name in ipairs(dyna_windurst_aura) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
-		elseif zone_info.zone == 297 then -- Jeuno
-			coroutine.sleep(5)
-			windower.add_to_chat(122,'In Dynamis Divergence - Jeuno, disabling HB debuff removal on auras.')
-			for i, debuff_name in ipairs(dyna_jeuno_aura) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
-		elseif zone_info.zone == 255 then -- Abyssea - Empyreal Paradox
-			coroutine.sleep(5)
-			windower.add_to_chat(122,'In Abyssea - Empyreal Paradox, disabling HB debuff on stat down.')
-			for i, debuff_name in ipairs(shinryu_debuffs) do
-				windower.send_command('hb ignore_debuff all ' .. debuff_name)
-			end
+            if SJRestrict == true then
+                windower.add_to_chat(122,'In Sheol: Gaol, disabling HB debuff removal on auras.')
+                for i, debuff_name in ipairs(gaol_auras) do
+                    windower.send_command('hb ignore_debuff all ' .. debuff_name)
+                end
+            end
+        elseif zone_info.zone == 294 then -- San d'Oria
+            coroutine.sleep(5)
+            windower.add_to_chat(122,'In Dynamis Divergence - San d\'Oria, disabling HB debuff removal on auras.')
+            for i, debuff_name in ipairs(dyna_sandoria_aura) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
+        elseif zone_info.zone == 295 then -- Bastok
+            coroutine.sleep(5)
+            windower.add_to_chat(122,'In Dynamis Divergence - Bastok, disabling HB debuff removal on auras.')
+            for i, debuff_name in ipairs(dyna_bastok_aura) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
+        elseif zone_info.zone == 296 then -- Windurst
+            coroutine.sleep(5)
+            windower.add_to_chat(122,'In Dynamis Divergence - Windurst, disabling HB debuff removal on auras.')
+            for i, debuff_name in ipairs(dyna_windurst_aura) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
+        elseif zone_info.zone == 297 then -- Jeuno
+            coroutine.sleep(5)
+            windower.add_to_chat(122,'In Dynamis Divergence - Jeuno, disabling HB debuff removal on auras.')
+            for i, debuff_name in ipairs(dyna_jeuno_aura) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
+        elseif zone_info.zone == 255 then -- Abyssea - Empyreal Paradox
+            coroutine.sleep(5)
+            windower.add_to_chat(122,'In Abyssea - Empyreal Paradox, disabling HB debuff on stat down.')
+            for i, debuff_name in ipairs(shinryu_debuffs) do
+                windower.send_command('hb ignore_debuff all ' .. debuff_name)
+            end
         elseif zone_info.mog_house == true then
             hb.active = false
         elseif settings.deactivateIndoors and indoor_zones:contains(zone_info.zone) then
@@ -221,26 +221,26 @@ hb._events['zone'] = windower.register_event('zone change', function(new_id, old
         end
     end
 
-	-- Exiting code
-	if gaol_zones:contains(old_id) and not gaol_zones:contains(new_id) then
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Exiting Sheol: Gaol zones, enabling NA/Erase removal.')
-		for i, debuff_name in ipairs(gaol_auras) do
-			windower.send_command('hb unignore_debuff all ' .. debuff_name)
-		end
-	elseif dyna_zones:contains(old_id) and not dyna_zones:contains(new_id) then
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Exiting any Dynamis Divergence zone, enabling NA/Erase removal.')
-		for i, debuff_name in ipairs(dyna_auras) do
-			windower.send_command('hb unignore_debuff all ' .. debuff_name)
-		end
-	elseif old_id == shinryu_zone and new_id ~= shinryu_zone then
-		coroutine.sleep(5)
-		windower.add_to_chat(122,'Exiting Abyssea - Empyreal Paradox, enabling NA/Erase removal.')
-		for i, debuff_name in ipairs(shinryu_debuffs) do
-			windower.send_command('hb unignore_debuff all ' .. debuff_name)
-		end
-	end
+    -- Exiting code
+    if gaol_zones:contains(old_id) and not gaol_zones:contains(new_id) then
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Exiting Sheol: Gaol zones, enabling NA/Erase removal.')
+        for i, debuff_name in ipairs(gaol_auras) do
+            windower.send_command('hb unignore_debuff all ' .. debuff_name)
+        end
+    elseif dyna_zones:contains(old_id) and not dyna_zones:contains(new_id) then
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Exiting any Dynamis Divergence zone, enabling NA/Erase removal.')
+        for i, debuff_name in ipairs(dyna_auras) do
+            windower.send_command('hb unignore_debuff all ' .. debuff_name)
+        end
+    elseif old_id == shinryu_zone and new_id ~= shinryu_zone then
+        coroutine.sleep(5)
+        windower.add_to_chat(122,'Exiting Abyssea - Empyreal Paradox, enabling NA/Erase removal.')
+        for i, debuff_name in ipairs(shinryu_debuffs) do
+            windower.send_command('hb unignore_debuff all ' .. debuff_name)
+        end
+    end
 end)
 
 
@@ -517,11 +517,11 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-      following disclaimer.
+        following disclaimer.
     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
-      following disclaimer in the documentation and/or other materials provided with the distribution.
+        following disclaimer in the documentation and/or other materials provided with the distribution.
     * Neither the name of ffxiHealer nor the names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+        derived from this software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL Lorand BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR

@@ -28,10 +28,10 @@ return {
         'Phalanx',
         'Light Arts',
         'Reraise'
-	},
-	['geo/rdm'] = {
+    },
+    ['geo/rdm'] = {
         'Haste',
-		'Refresh',
+        'Refresh',
     },
     ['geo/whm'] = {
         'Haste',
@@ -62,7 +62,7 @@ return {
         'Afflatus Solace',
         'Aurorastorm'
     },
-	['sch'] = {
+    ['sch'] = {
         'Protect V',
         'Shell V',
         'Reraise'
