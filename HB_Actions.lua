@@ -241,14 +241,17 @@ function actions.get_offensive_action(player)
         return action.db
     end
 
-    -- look into this for some single named Weaponskills (Moonlight and starlight)
     if (not settings.disable.ws) and (settings.ws ~= nil) and healer:ready_to_use(lor_res.action_for(settings.ws.name)) then
         local sign = settings.ws.sign or '>'
         local hp = settings.ws.hp or 0
         local hp_ok = ((sign == '<') and (target.hpp <= hp)) or ((sign == '>') and (target.hpp >= hp))
 
         local player = windower.ffxi.get_player()
-        local setting_self_tp = settings.ws.self.tp or 1000
+        local setting_self_tp = 1000
+
+        if (settings.ws.self_tp ~= nil) then
+            setting_self_tp = settings.ws.self_tp
+        end
 
         local partner_ok = true
         if (settings.ws.partner ~= nil) then

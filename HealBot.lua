@@ -274,9 +274,11 @@ hb._events['render'] = windower.register_event('prerender', function()
                 local should_move = false
                 if (targ ~= nil) and (player.target_index == partner.target_index) then
                     if offense.assist.engage and (partner.status == 1) then
-                        if healer:dist_from(targ.id) > 3 then
-                            should_move = true
-                            healer:move_towards(targ.id)
+                        if offense.assist.noapproach == false then
+                            if healer:dist_from(targ.id) > 3 then
+                                should_move = true
+                                healer:move_towards(targ.id)
+                            end
                         end
                     end
                 end

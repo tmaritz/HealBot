@@ -120,6 +120,15 @@ function processCommand(command,...)
                 offense.assist.engage = true
                 atc('Will now enagage when assisting.')
             end
+        elseif S{'noapproach'}:contains(cmd) then
+            local cmd2 = args[2] and args[2]:lower() or (offense.assist.noapproach and 'off' or 'resume')
+            if S{'off','end','false','pause'}:contains(cmd2) then
+                offense.assist.noapproach = false
+                atc('Will approach mobs when assisting.')
+            else
+                offense.assist.noapproach = true
+                atc('Will no longer approach mobs when assisting. Set the follow dist to .5 to make sure you can reach mobs.')
+            end
         else    --args[1] is guaranteed to have a value if this is reached
             offense.register_assistee(args[1])
         end
@@ -151,10 +160,14 @@ function processCommand(command,...)
             end
         elseif (cmd == 'tp') then      --another player's TP
             local self_tp = tonumber(args[2]) or 1000
-            if self_tp < 1000 or self_tp >  2999 then
+            if self_tp < 1000 then
                 self_tp = 1000
             end
-            settings.ws.self = {tp=self_tp}
+            if self_tp >  2999 then
+                self_tp = 2999
+            end
+
+            settings.ws.self_tp = self_tp
             atc("Will weaponskill when TP is "..gte.." "..self_tp)
         else
             if S{'use','set'}:contains(cmd) then    -- ws name
@@ -960,7 +973,7 @@ function help_text()
         {'watch <player>','Monitors the given player/npc so they will be healed'},
         {'unwatch <player>','Stops monitoring the given player/npc (=/= ignore)'},
         {'ignoretrusts <on/off>','Toggles whether or not Trust NPCs should be ignored (default: on)'},
-        {'ascmd','Sets a player to assist, toggles whether or not to engage, or toggles being active with no argument'},
+        {'ascmd','Sets a player to assist, toggles whether or not to engage, to approach target, or toggles being active with no argument'},
         {'wscmd1','Sets the weaponskill to use'},
         {'wscmd2','Sets when weaponskills should be used according to whether the mob HP is < or > the given amount'},
         {'wscmd3','Sets a weaponskill partner to open skillchains for, and the TP that they should have'},
@@ -974,7 +987,7 @@ function help_text()
     }
     local acmds = {
         ['fcmd']=('f'):colorize(ac,cc)..'ollow [<player> | dist <distance> | off | resume]',
-        ['ascmd']=('as'):colorize(ac,cc)..'sist [<player> | attack | off | resume]',
+        ['ascmd']=('as'):colorize(ac,cc)..'sist [<player> | attack | off | resume | noapproach]',
         ['wscmd1']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill use <ws name>',
         ['wscmd2']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill hp <sign> <mob hp%>',
         ['wscmd3']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill waitfor <player> <tp>',

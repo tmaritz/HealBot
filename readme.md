@@ -137,10 +137,14 @@ Place the healBot folder in .../Windower/addons/
 | -----------------------------------| --------------------------------------------------------------------------------------------------------------|
 | //hb assist (charName)             | Assists player charName (This Must be in proper form - Fendo not fendo)                                       |
 | //hb assist attack                 | Will engage target mob on assist                                                                              |
+| //hb assist noapproach on          | Will not approach target on assist - Set follow dist to .5 to ensure you are in melee range.                  |
+| //hb assist noapproach off         | Will approach target on assist (this is the default setting)                                                  |
 | //hb assist off                    | Stop assisting player                                                                                         |
 | //hb assist resume                 | Resumes assisting                                                                                             |
 | //hb as (charName)                 | Assists player charName (This Must be in proper form - Fendo not fendo) (assist shorthand)                    |
 | //hb as attack                     | Will engage target mob on assist (assist shorthand)                                                           |
+| //hb as noapproach on              | Will not approach target on assist - Set follow dist to .5 to ensure you are in melee range.(assist shorthand)|
+| //hb as noapproach off             | Will approach target on assist (this is the default setting) (assist shorthand)                               |
 | //hb as off                        | Stop assisting player (assist shorthand)                                                                      |
 | //hb as resume                     | Resumes assisting (assist shorthand)                                                                          |
 
