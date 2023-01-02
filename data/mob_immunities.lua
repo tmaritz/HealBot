@@ -149,16 +149,16 @@ return {
     ["Cep-Kamuy"] = S{
         2
     },
-    ["Chloris"] = S{
-        2
-    },
-    ["Cirein-croin"] = S{
-        2
-    },
     ["Chest O'Plenty"] = S{
         6
     },
     ["Chirurgeon"] = S{
+        2
+    },
+    ["Chloris"] = S{
+        2
+    },
+    ["Cirein-croin"] = S{
         2
     },
     ["Cloud of Darkness"] = S{
@@ -212,6 +212,7 @@ return {
         2
     },
     ["Evincing Idol"] = S{
+        2,
         6
     },
     ["Fire Circle"] = S{

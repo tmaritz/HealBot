@@ -67,6 +67,20 @@ return {
         'Shell V',
         'Reraise'
     },
+    ['rdmExemplar'] = {
+        'Haste II',
+        'Aquaveil',
+        'Protect V',
+        'Shell V',
+        'Phalanx',
+        'Composure',
+        'Temper II',
+        'Refresh III'
+    },
+    ['mageExemplar'] = {
+        'Haste II',
+        'Refresh III'
+    }
 }
 
 -- return {
@@ -84,6 +98,8 @@ return {
 --             'Shell V',
 --             'Phalanx',
 --             'Composure'
+--              'Temper II',
+--              'Refresh III'
 --         },
 --         ['mage'] = {
 --             'Haste II',
