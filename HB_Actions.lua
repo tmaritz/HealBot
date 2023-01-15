@@ -15,7 +15,12 @@ local function local_queue_reset()
 end
 
 local function local_queue_insert(action, target)
-    actions.queue:append(tostring(action)..' → '..tostring(target))
+	if (tostring(action) ~= nil) and (tostring(target) ~= nil) then
+		actions.queue:append(tostring(action)..' → '..tostring(target))
+	else
+
+	end
+    --actions.queue:append(tostring(action)..' → '..tostring(target))
 end
 
 local function local_queue_disp()
@@ -29,6 +34,7 @@ end
 --]]
 function actions.get_defensive_action()
     local action = {}
+    local player = player or windower.ffxi.get_player()
 
     if hb.manual_action then
         action.manual = hb.manual_action
@@ -66,7 +72,10 @@ function actions.get_defensive_action()
         local buffq = buffs.getBuffQueue()
         while (not buffq:empty()) do
             local bact = buffq:pop()
-            local_queue_insert(bact.action.en, bact.name)
+            if (bact and bact.action and bact.action.en) then
+                bact_target = windower.ffxi.get_mob_by_name(bact.name)
+                local_queue_insert(bact.action.en, bact.name)
+            end
             if (action.buff == nil) and healer:in_casting_range(bact.name) and healer:ready_to_use(bact.action) then
                 action.buff = bact
             end
