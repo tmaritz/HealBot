@@ -15,11 +15,11 @@ local function local_queue_reset()
 end
 
 local function local_queue_insert(action, target)
-	if (tostring(action) ~= nil) and (tostring(target) ~= nil) then
-		actions.queue:append(tostring(action)..' → '..tostring(target))
-	else
+    if (tostring(action) ~= nil) and (tostring(target) ~= nil) then
+        actions.queue:append(tostring(action)..' → '..tostring(target))
+    else
 
-	end
+    end
     --actions.queue:append(tostring(action)..' → '..tostring(target))
 end
 
