@@ -112,6 +112,9 @@ function actions.take_action(player, partner, targ)
         healer:take_action(hb.aoe_action)
         return
     end
+    if settings.autoshadows == true then
+        buffs.check_shadows()
+    end
     buffs.checkOwnBuffs()
     local_queue_reset()
     local action = actions.get_defensive_action()

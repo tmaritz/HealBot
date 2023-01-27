@@ -162,6 +162,10 @@ end)
 hb._events['zone'] = windower.register_event('zone change', function(new_id, old_id)
     healer.zone_enter = os.clock()
     local zone_info = windower.ffxi.get_info()
+    buffs.resetDebuffTimers('ALL')
+    hb.active = false	-- Deactivate when zoned.
+    offense.cleanup()
+
     if zone_info ~= nil then
         if zone_info.zone == 131 then
             windower.send_command('lua unload healBot')
@@ -445,6 +449,7 @@ function hb.isPerformingAction(moving)
         healer.zone_wait = true
     elseif healer.zone_wait then
         healer.zone_wait = false
+        --buffs.resetBuffTimers('ALL')
         buffs.resetBuffTimers('ALL', S{'Protect V', 'Shell V'})
     elseif healer:buff_active('Sleep','Petrification','Charm','Terror','Lullaby','Stun','Silence','Mute') then
         acting = true

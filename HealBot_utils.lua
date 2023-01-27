@@ -314,8 +314,18 @@ function processCommand(command,...)
         toggleMode('showPacketInfo', args[1], 'Packet info display', 'PacketInfo')
     elseif command == 'debug' then
         toggleMode('debug', args[1], 'Debug mode', 'debug mode')
-    elseif command == 'independent' then
+    elseif S{'independent','inde'}:contains(command) then
         toggleMode('independent', args[1], 'Independent mode', 'independent mode')
+
+    elseif S{'autoshadows','shadows'}:contains(command) then
+        local cmd = args[1] and args[1]:lower() or (offense.assist.active and 'off' or 'resume')
+        if S{'off','end','false','pause'}:contains(cmd) then
+            settings.autoshadows = false
+            atc('Autoshadows is now off.')
+        elseif S{'resume','on'}:contains(cmd) then
+            settings.autoshadows = true
+            atc('Autoshadows is now on.')
+        end
     elseif S{'deactivateindoors','deactivate_indoors'}:contains(command) then
         utils.toggleX(settings, 'deactivateIndoors', args[1], 'Deactivation in indoor zones', 'DeactivateIndoors')
     elseif S{'activateoutdoors','activate_outdoors'}:contains(command) then

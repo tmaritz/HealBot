@@ -26,6 +26,151 @@ function buffs.checkOwnBuffs()
 end
 
 
+function buffs.has_shadows()
+    if (buffs.buff_active(446)) then --"Copy Image (4+)"
+        return 4
+    elseif (buffs.buff_active(445)) then --"Copy Image (3)"
+        return 3
+    elseif (buffs.buff_active(444)) then --"Copy Image (2)"
+        return 2
+    elseif (buffs.buff_active(36)) or (buffs.buff_active(66)) then -- Blink or "Copy Image"
+        return 1
+    else
+        return 0
+    end
+end
+
+function buffs.check_shadows()
+    local player = windower.ffxi.get_player()
+    local latency = .7
+    local spell_latency = (latency * 60) + 18
+    local spell_recasts = windower.ffxi.get_spell_recasts()
+    local currentshadows = buffs.has_shadows()
+
+    if buffs.disabled() == true then return false end
+    if player.main_job == 'NIN' then
+        if currentshadows < 3 and player.job_points[(res.jobs[player.main_job_id].ens):lower()].jp_spent > 99 and spell_recasts[340] < spell_latency then
+            windower.chat.input('/ma "Utsusemi: San" <me>')
+            tickdelay = os.clock() + 1.8
+            return true
+        elseif currentshadows < 2 then
+            if spell_recasts[339] < spell_latency then
+                windower.chat.input('/ma "Utsusemi: Ni" <me>')
+                tickdelay = os.clock() + 1.8
+                return true
+            elseif spell_recasts[338] < spell_latency then
+                windower.chat.input('/ma "Utsusemi: Ichi" <me>')
+                tickdelay = os.clock() + 2
+                return true
+            else
+                return false
+            end
+        else
+            return false
+        end
+    elseif player.sub_job == 'NIN' then
+        if currentshadows < 1 then
+            if spell_recasts[339] < spell_latency then
+                windower.chat.input('/ma "Utsusemi: Ni" <me>')
+                tickdelay = os.clock() + 1.8
+                return true
+            elseif spell_recasts[338] < spell_latency then
+                windower.chat.input('/ma "Utsusemi: Ichi" <me>')
+                tickdelay = os.clock() + 2
+                return true
+            else
+                return false
+            end
+        else
+            return false
+        end
+    elseif currentshadows == 0 then
+        if player.main_job == 'SAM' and windower.ffxi.get_ability_recasts()[133] < latency then
+            windower.chat.input('/ja "Third Eye" <me>')
+            tickdelay = os.clock() + 1.1
+            return true
+        elseif buffs.silent_can_use(679) and spell_recasts[679] < spell_latency then
+            windower.chat.input('/ma "Occultation" <me>')
+            tickdelay = os.clock() + 2
+            return true
+        elseif buffs.silent_can_use(53) and spell_recasts[53] < spell_latency then
+            windower.chat.input('/ma "Blink" <me>')
+            tickdelay = os.clock() + 2
+            return true
+        elseif buffs.silent_can_use(647) and spell_recasts[647] < spell_latency then
+            windower.chat.input('/ma "Zephyr Mantle" <me>')
+            tickdelay = os.clock() + 2
+            return true
+        elseif player.sub_job == 'SAM' and windower.ffxi.get_ability_recasts()[133] < latency then
+            windower.chat.input('/ja "Third Eye" <me>')
+            tickdelay = os.clock() + 1.1
+            return true
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
+
+function buffs.silent_can_use(spellid)
+    local available_spells = windower.ffxi.get_spells()
+    local spell_jobs = buffs.copy_entry(res.spells[spellid].levels)
+
+    -- Filter for spells that you do not know. Exclude Impact, Honor March and Dispelga.
+    if not available_spells[spellid] and not (spellid == 503 or spellid == 417 or spellid == 360) then
+        return false
+    -- Filter for spells that you know, but do not currently have access to
+    elseif (not spell_jobs[player.main_job_id] or not (spell_jobs[player.main_job_id] <= player.main_job_level or
+        (spell_jobs[player.main_job_id] >= 100 and number_of_jps(player.job_points[(res.jobs[player.main_job_id].ens):lower()]) >= spell_jobs[player.main_job_id]) ) ) and
+        (not spell_jobs[player.sub_job_id] or not (spell_jobs[player.sub_job_id] <= player.sub_job_level)) then
+        return false
+    elseif res.spells[spellid].type == 'BlueMagic' and not ((player.main_job_id == 16 and (table.contains(windower.ffxi.get_mjob_data().spells,spellid))) or (player.sub_job_id == 16 and table.contains(windower.ffxi.get_sjob_data().spells,spellid))) then
+        return false
+    else
+        return true
+    end
+end
+
+function buffs.copy_entry(tab)
+    if not tab then return nil end
+    local ret = setmetatable(table.reassign({},tab),getmetatable(tab))
+    return ret
+end
+
+
+function buffs.buff_active(id)
+    if T(windower.ffxi.get_player().buffs):contains(id) == true then
+        return true
+    end
+    return false
+end
+
+function buffs.disabled()
+    if (buffs.buff_active(0)) then -- KO
+        return true
+    elseif (buffs.buff_active(2)) then -- Sleep
+        return true
+    elseif (buffs.buff_active(6)) then -- Silence
+        return true
+    elseif (buffs.buff_active(7)) then -- Petrification
+        return true
+    elseif (buffs.buff_active(10)) then -- Stun
+        return true
+    elseif (buffs.buff_active(14)) then -- Charm
+        return true
+    elseif (buffs.buff_active(28)) then -- Terrorize
+        return true
+    elseif (buffs.buff_active(29)) then -- Mute
+        return true
+    elseif (buffs.buff_active(193)) then -- Lullaby
+        return true
+    elseif (buffs.buff_active(262)) then -- Omerta
+        return true
+    end
+    return false
+end
+
 function buffs.review_active_buffs(player, buff_list)
     if buff_list ~= nil then
         --Register everything that's actually active
@@ -513,6 +658,7 @@ function buffs.getRemovableDebuffCountAroundTarget(target, dist, debuff)
     local c = 0
     local party = ffxi.party_member_names()
     local targetMob = windower.ffxi.get_mob_by_name(target)
+    if targetMob == nil then return false end
     for watchPerson,_ in pairs(hb.getMonitoredPlayers()) do
         local mob = windower.ffxi.get_mob_by_name(watchPerson)
         local dx = targetMob.x - mob.x

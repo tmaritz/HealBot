@@ -1,15 +1,16 @@
 # HealBot
 
-## Mashup between Original and Updated Versions as of 12/15/2021
+## Mashup between Original and Updated Versions as of 12/15/2021 with additional features
 
 ## Original:
 ### https://github.com/lorand-ffxi/HealBot
 
-## Additions:
+## Additions / Other ideas taken from these other repos:
+### https://github.com/PeachBlossomWine/HealBot
 ### https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
 ### https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
 
-## Update: HealBot now depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
+## Update: HealBot depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
 
 ## NEW: IPC has been added! (see below)
 
@@ -32,10 +33,20 @@ Bard songs are officially unsupported at this time.  YMMV - it cannot handle the
 fact that there is no notification given when one song overwrites another, or
 maintaining multiple buffs that have the same name.  That being said, if you
 only want to maintain 2-3 songs without using a dummy song, it may work.  I have
-an idea about how to support BRD songs, so that should be coming soon.
+an idea about how to support BRD songs, so that should be coming soon. Until then
+use [Singer](https://github.com/Ivaar/Windower-addons/tree/master/Singer)
 
-Also coming soon is the ability to cast offensive spells on an assist target's
-target.
+GEO isn't well supported at this time. Alternative:
+[AutoGEO] (https://github.com/zpaav/AutoGEO)
+
+COR is also not well supported at this time. Alternatives:
+[Roller] (https://github.com/zpaav/Roller)
+[AutoCOR] (https://github.com/Icydeath/ffxi-addons/tree/master/AutoCOR)
+
+Coming soon:
+The ability to cast offensive spells on an assist target's target.
+Work in SCH AOE Regen with Max Duration / Potency.
+May try AOE options for other buffs as well (Protect, Shell, etc.).
 
 --------------------------------------------------------------------------------
 
@@ -131,6 +142,8 @@ Place the healBot folder in .../Windower/addons/
 | //hb db on                             | Auto debuffs on assisted target from set list (shorthand for debuff)                                      |
 | //hb db off                            | Stops auto debuffs on assisted target (shorthand for debuff)                                              |
 | //hb db ls                             | Lists Auto debuffs on assisted target (shorthand for debuff)                                              |
+| //hb autoshadows on                    | Enables autoshadow upkeep - Utsusemi, Blink, Third Eye, etc.                                              |
+| //hb autoshadows off                   | Disables autoshadow upkeep                                                                                |
 
 #### Auto Assist
 | Command                            | Action                                                                                                        |
