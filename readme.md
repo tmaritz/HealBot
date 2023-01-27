@@ -6,8 +6,11 @@
 ### https://github.com/lorand-ffxi/HealBot
 
 ## Additions / Other ideas taken from these other repos:
+
 https://github.com/PeachBlossomWine/HealBot
+
 https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
+
 https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
 
 ## Update: HealBot depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
@@ -37,10 +40,13 @@ an idea about how to support BRD songs, so that should be coming soon. Until the
 use Singer - https://github.com/Ivaar/Windower-addons/tree/master/Singer
 
 GEO isn't well supported at this time. Alternative:
+
 AutoGEO - https://github.com/zpaav/AutoGEO
 
 COR is also not well supported at this time. Alternatives:
+
 Roller - https://github.com/zpaav/Roller
+
 AutoCOR - https://github.com/Icydeath/ffxi-addons/tree/master/AutoCOR
 
 Coming soon:
