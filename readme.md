@@ -109,6 +109,8 @@ Place the healBot folder in .../Windower/addons/
 | //hb status                            | Displays whether or not healBot is active in the chat log                                                     |
 | //hb mincure (#)                       | Set the minimum cure tier to # (default is 3 - if this is spammy set it to 4 to be safe)                      |
 | //hb independent (on | off)            | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
+| //hb customsettings listName           | Loads a customized settings profile from custom_settings.lua                                                  |
+| //hb custom listName                   | Loads a customized settings profile from custom_settings.lua (customsettings shorthand)                       |
 
 #### Healing / Curing
 | Command                                         | Action                                                                                               |
@@ -135,12 +137,14 @@ Place the healBot folder in .../Windower/addons/
 | //hb buff (t) spellName                | Maintain the buff spellName on current target                                                             |
 | //hb cancelbuff charName spellName     | Stop maintaining the buff spellName on player charName                                                    |
 | //hb cancelbuff (t) spellName          | Stop maintaining the buff spellName on current target                                                     |
-| //hb bufflist listName charName        | Maintain the buffs in the given list of buffs on player charName                                          |
-| //hb bl listName charName              | Maintain the buffs in the given list of buffs on player charName (bufflist shorthand)                     |
+| //hb bufflist listName charName        | Maintain buffs on selected char from list located in buffLists.Lua                                        |
+| //hb bl listName charName              | Maintain buffs on selected char from list located in buffLists.Lua (bufflist shorthand)                   |
 | //hb bufflist listName (t)             | Maintain the buffs in the given list of buffs on current target                                           |
 | //hb debuff spellName                  | Maintain the debuff spellName on assisted target                                                          |
 | //hb debuff rm spellName               | Removes from the list of the debuffs on assisted target                                                   |
 | //hb debuff on                         | Auto debuffs on assisted target from set list                                                             |
+| //hb debuffList listName               | Loads Auto debuffs on assisted target from set list in debuffLists.lua                                    |
+| //hb debl listName                     | Loads Auto debuffs on assisted target from set list in debuffLists.lua (shorthand for debufflist)         |
 | //hb debuff off                        | Stops auto debuffs on assisted target                                                                     |
 | //hb debuff ls                         | Lists Auto debuffs on assisted target                                                                     |
 | //hb db spellName                      | Maintain the debuff spellName on assisted target (shorthand for debuff)                                   |
@@ -203,4 +207,3 @@ Place the healBot folder in .../Windower/addons/
 | //hb moveinfo off                      | Hides the moveInfo display                                                                                    |
 | //hb packetinfo on                     | Adds to the chat log packet info about monitored players                                                      |
 | //hb packetinfo off                    | Prevents packet info from being added to the chat log                                                         |
-

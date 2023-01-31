@@ -242,7 +242,7 @@ function actions.get_offensive_action(player)
     local dbuffq = offense.getDebuffQueue(player, target)
     while not dbuffq:empty() do
         local dbact = dbuffq:pop()
-        local_queue_insert(dbact.action.en, target)
+        local_queue_insert(dbact.action.en, target.name)
         if (action.db == nil) and healer:in_casting_range(target) and healer:ready_to_use(dbact.action) then
             action.db = dbact
         end
@@ -253,7 +253,7 @@ function actions.get_offensive_action(player)
         return action.db
     end
 
-    if (not settings.disable.ws) and (settings.ws ~= nil) and healer:ready_to_use(lor_res.action_for(settings.ws.name)) then
+    if (not settings.disable.ws) and (settings.ws ~= nil) and (settings.ws.name ~= nil) and healer:ready_to_use(lor_res.action_for(settings.ws.name)) then
         local sign = settings.ws.sign or '>'
         local hp = settings.ws.hp or 0
         local hp_ok = ((sign == '<') and (target.hpp <= hp)) or ((sign == '>') and (target.hpp >= hp))

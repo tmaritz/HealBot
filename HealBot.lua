@@ -33,6 +33,7 @@ hb = {
 }
 healer = T{}
 settings = {}
+settings.ws = {}
 _libs.lor.debug = hb.modes.debug
 
 res = require('resources')

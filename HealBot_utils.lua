@@ -277,6 +277,9 @@ function processCommand(command,...)
         buffs.registerIgnoreDebuff(args, true)
     elseif command == 'unignore_debuff' then
         buffs.registerIgnoreDebuff(args, false)
+    elseif S{'debufflist','debl'}:contains(command) then
+        if not validate(args, 1, 'Error: No argument specified for DebuffList') then return end
+        utils.apply_debufflist(args)
     elseif S{'follow','f'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (settings.follow.active and 'off' or 'resume')
         if S{'off','end','false','pause','stop','exit'}:contains(cmd) then
@@ -396,6 +399,9 @@ function processCommand(command,...)
         else
             atc(123,'Error: No target provided.')
         end
+    elseif S{'customsettings','custom'}:contains(command) then
+        if not validate(args, 1, 'Error: No argument specified for Custom Settings') then return end
+        utils.apply_custom_settings(args)
     elseif S{'help','--help'}:contains(command) then
         help_text()
     elseif command == 'settings' then
@@ -497,6 +503,96 @@ function utils.apply_bufflist(args)
         atc('Error: Invalid argument specified for BuffList: '..bl_name)
     end
 end
+
+
+function utils.apply_debufflist(args)
+    local mj = windower.ffxi.get_player().main_job
+    local sj = windower.ffxi.get_player().sub_job
+    local job = ('%s/%s'):format(mj, sj)
+    local debl_name = args[1]
+
+    local debuff_list = table.get_nested_value(hb.config.debuff_lists, {job, job:lower(), mj, mj:lower()}, debl_name)
+
+    debuff_list = debuff_list or hb.config.debuff_lists[debl_name]
+    if debuff_list ~= nil then
+        for _,debuff in pairs(debuff_list) do
+            utils.register_offensive_debuff({debuff}, false)
+        end
+    else
+        atc('Error: Invalid argument specified for DebuffList: '..debl_name)
+    end
+end
+
+
+function utils.apply_custom_settings(args)
+    local self = windower.ffxi.get_player().name
+    local mj = windower.ffxi.get_player().main_job
+    local sj = windower.ffxi.get_player().sub_job
+    local job = ('%s/%s'):format(mj, sj)
+    local custom_settings_name = args[1]
+    local party = windower.ffxi.get_party()
+    local custom_settings= table.get_nested_value(hb.config.custom_settings, {job, job:lower(), mj, mj:lower()}, custom_settings_name)
+
+    custom_settings = custom_settings or hb.config.custom_settings[custom_settings_name]
+    if custom_settings ~= nil then
+        for key, value in pairs(custom_settings) do
+            if key == 'independent' then
+                hb.modes.independent = custom_settings['independent']
+            elseif key == 'autoshadows' then
+                settings.autoshadows = custom_settings['autoshadows']
+            elseif key == 'assist' then
+                offense.assist.active =  custom_settings['assist']
+            elseif key == 'assistName' then
+                offense.assist.name =  custom_settings['assistName']
+            elseif key == 'assistEngage' then
+                offense.assist.engage  = custom_settings['assistEngage']
+            elseif key == 'noapproach' then
+                offense.assist.noapproach = custom_settings['noapproach']
+            elseif key == 'follow' then
+                settings.follow.active = custom_settings['follow']
+            elseif key == 'followTarget' then
+                settings.follow.target = custom_settings['followTarget']
+            elseif key == 'followDist' then
+                settings.follow.distance = custom_settings['followDist']
+            elseif key == 'useWeaponSkill' then
+                settings.ws.name = custom_settings['useWeaponSkill']
+            elseif key == 'useWeaponSkillTP' then
+                settings.ws.self_tp = custom_settings['useWeaponSkillTP']
+            elseif key == 'applySelfBuffList' then
+                utils.apply_bufflist({custom_settings['applySelfBuffList'], self})
+            elseif key == 'applyP1BuffList' then
+                if party.p1 ~= nil then
+                    utils.apply_bufflist({custom_settings['applyP1BuffList'], party.p1.name})
+                end
+            elseif key == 'applyP2BuffList' then
+                if party.p2 ~= nil then
+                    utils.apply_bufflist({custom_settings['applyP2BuffList'], party.p2.name})
+                end
+            elseif key == 'applyP3BuffList' then
+                if party.p3 ~= nil then
+                    utils.apply_bufflist({custom_settings['applyP3BuffList'], party.p3.name})
+                end
+            elseif key == 'applyP4BuffList' then
+                if party.p4 ~= nil then
+                    utils.apply_bufflist({custom_settings['applyP4BuffList'], party.p4.name})
+                end
+            elseif key == 'applyP5BuffList' then
+                if party.p5 ~= nil then
+                    utils.apply_bufflist({custom_settings['applyP5BuffList'], party.p5.name})
+                end
+            elseif key == 'useDebuffs' then
+                offense.debuffing_active = custom_settings['useDebuffs']
+            elseif key == 'applyDebuffList' then
+                utils.apply_debufflist({custom_settings['applyDebuffList']})
+            elseif key == 'ignoreTrusts' then
+                settings.ignoreTrusts  = custom_settings['ignoreTrusts']
+            end
+        end
+    else
+        atc('Error: Invalid argument specified for Custom Settings: '..custom_settings_name)
+    end
+end
+
 
 
 function utils.posCommand(boxName, args)
@@ -797,13 +893,19 @@ function utils.load_configs()
         whm = {self={'Haste','Refresh'}}, rdm = {self={'Haste II','Refresh II'}}
     }
 
+    local debuff_lists_defaults = {  rdm = {self={'Dia II','Paralyze'}}}
+    local custom_settings_defaults = {}
+
     hb.config = {
         aliases = config.load('../shortcuts/data/aliases.xml'),
         mabil_debuffs = lor_settings.load('data/mabil_debuffs.lua'),
         buff_lists = lor_settings.load('data/buffLists.lua', buff_lists_defaults),
         priorities = lor_settings.load('data/priorities.lua'),
-        cure_potency = lor_settings.load('data/cure_potency.lua', cure_potency_defaults)
+        cure_potency = lor_settings.load('data/cure_potency.lua', cure_potency_defaults),
+        debuff_lists = lor_settings.load('data/debuffLists.lua', debuff_lists_defaults),
+        custom_settings = lor_settings.load('data/custom_settings.lua', custom_settings_defaults),
     }
+
     hb.config.priorities.players =        hb.config.priorities.players or {}
     hb.config.priorities.jobs =           hb.config.priorities.jobs or {}
     hb.config.priorities.status_removal = hb.config.priorities.status_removal or {}
@@ -965,6 +1067,7 @@ function help_text()
         {'on | off','Activate / deactivate HealBot (does not affect follow)'},
         {'reload','Reload HealBot, resetting everything'},
         {'refresh','Reloads settings XMLs in addons/HealBot/data/'},
+        {'custom','Loads custom settings from a list stored in the custom_settings.lua'},
         {'fcmd','Sets a player to follow, the distance to maintain, or toggles being active with no argument'},
         {'buff <player> <spell>[, <spell>[, ...]]','Sets spell(s) to be maintained on the given player'},
         {'cancelbuff <player> <spell>[, <spell>[, ...]]','Un-sets spell(s) to be maintained on the given player'},
@@ -972,6 +1075,7 @@ function help_text()
         {'bufflists','Lists the currently configured spells/abilities in each bufflist'},
         {'spam [use <spell> | <bool>]','Sets the spell to be spammed on assist target\'s enemy, or toggles being active (default: Stone, off)'},
         {'dbcmd','Add/remove debuff spell to maintain on assist target\'s enemy, toggle on/off, or list current debuffs to maintain'},
+        {'dbcmd2','Add/remove debuff spells from a selected list stored in debuffLists.lua'},
         {'mincure <number>','Sets the minimum cure spell tier to cast (default: 3)'},
         {'disable <action type>','Disables actions of a given type (cure, buff, na)'},
         {'enable <action type>','Re-enables actions of a given type (cure, buff, na) if they were disabled'},
@@ -996,6 +1100,7 @@ function help_text()
         {'help','Displays this help text'}
     }
     local acmds = {
+        ['custom']=('custom'):colorize(ac,cc)..'settings <list name>',
         ['fcmd']=('f'):colorize(ac,cc)..'ollow [<player> | dist <distance> | off | resume]',
         ['ascmd']=('as'):colorize(ac,cc)..'sist [<player> | attack | off | resume | noapproach]',
         ['wscmd1']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill use <ws name>',
@@ -1004,6 +1109,7 @@ function help_text()
         ['wscmd4']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill nopartner',
         ['wscmd5']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill tp <tp>',
         ['dbcmd']=('d'):colorize(ac,cc)..'e'..('b'):colorize(ac,cc)..'uff [(use | rm) <spell> | on | off | ls]',
+        ['dbcmd2']=('de'):colorize(ac,cc)..('b'):colorize(ac,cc)..'uff'..('l'):colorize(ac,cc)..'ist <list name>',
         ['blcmd']=('b'):colorize(ac,cc)..'uff'..('l'):colorize(ac,cc)..'ist <list name> (<player>)',
     }
 

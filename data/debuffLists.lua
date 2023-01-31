@@ -1,94 +1,12 @@
 return {
-    ['rdm/blm'] = {
-        'Composure',
-        'Haste II',
-        'Refresh III',
-        'Aquaveil',
-        'Protect V',
-        'Shell V',
-        'Phalanx'
-    },
-    ['rdm/whm'] = {
-        'Composure',
-        'Haste II',
-        'Refresh III',
-        'Aquaveil',
-        'Protect V',
-        'Shell V',
-        'Phalanx',
-        'Reraise'
-    },
-    ['rdm/sch'] = {
-        'Composure',
-        'Haste II',
-        'Refresh III',
-        'Aquaveil',
-        'Protect V',
-        'Shell V',
-        'Phalanx',
-        'Light Arts',
-        'Reraise'
-    },
-    ['geo/rdm'] = {
-        'Haste',
-        'Refresh',
-    },
-    ['geo/whm'] = {
-        'Haste',
-    },
-    ['whm'] = {
-        'Haste',
-        'Protectra V',
-        'Shellra V',
-        'Reraise IV',
-        'Afflatus Solace',
-        'Auspice'
-    },
-    ['whm/rdm'] = {
-        'Haste',
-        'Refresh',
-        'Protectra V',
-        'Shellra V',
-        'Reraise IV',
-        'Afflatus Solace',
-        'Auspice'
-    },
-    ['whm/sch'] = {
-        'Haste',
-        'Light Arts',
-        'Protectra V',
-        'Shellra V',
-        'Reraise IV',
-        'Afflatus Solace',
-        'Aurorastorm'
-    },
-    ['sch'] = {
-        'Protect V',
-        'Shell V',
-        'Reraise'
+    ['rdm'] = {
+        'Dia II',
+        'Paralyze',
     },
     ['rdmExemplar'] = {
-        'Composure',
-        'Haste II',
-        'Temper II',
-        'Refresh III',
-        'Enthunder',
-        'Aquaveil',
-        'Protect V',
-        'Shell V',
-        'Phalanx',
-        'Shock Spikes',
-        'Barfire',
-        'Barparalyze',
-        'Gain-STR',
+        'Dia III',
+        'Distract III',
     },
-    ['ddExemplar'] = {
-        'Haste II',
-    },
-    ['mageExemplar'] = {
-        'Haste II',
-        'Refresh III'
-    }
 }
 
 -- return {
