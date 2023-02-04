@@ -1,21 +1,6 @@
 # HealBot
 
-## Mashup between Original and Updated Versions as of 12/15/2021 with additional features
-
-## Original:
-### https://github.com/lorand-ffxi/HealBot
-
-## Additions / Other ideas taken from these other repos:
-
-https://github.com/PeachBlossomWine/HealBot
-
-https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
-
-https://github.com/AkadenTK/HealBot (Updated 05/21/2019)
-
-## Update: HealBot depends on [libs/lor](https://github.com/lorand-ffxi/lor_libs)
-
-## NEW: IPC has been added! (see below)
+A tool to reduce the amount of button mashing in the FFXI game.
 
 ### Summary
 
@@ -67,32 +52,53 @@ Only the healer's HealBot needs to be on - the non-healer just needs to have
 HealBot loaded to be able to tell the healer's instance about its active buffs
 and debuffs.
 
+## Requirements
+### HealBot depends on libs/lor
+
+These libs can be downloaded [here](https://github.com/lorand-ffxi/lor_libs).
+Full url: https://github.com/lorand-ffxi/lor_libs
+
+To install, unzip the download and place the internal most `lor` folder into the `Windower\addons\libs` folder.
+
+To verify the correct folder setup, click on the `lor` folder and if it has the `lor-*.lua files` inside that `lor` folder it's good to go.
+If not, go one level deeper until you see those files.
+
+### Required addons
+shortcuts and cancel
+Please install these and turn them on.
+This can be done through the Windower Addons options.
+
+## How to use
 
 ### Settings
 
-If you have the shortcuts addon installed, your aliases.xml file from that addon
+If you have the shortcuts addon installed, your `aliases.xml` file from that addon
 will be loaded, and those aliases will be available for use when specifying
 buffs.
 
 You can edit/add/remove buff lists that can be invoked with the
-`//hb bufflist listName targetName` command in data/buffLists.xml.  The order of
+`//hb bufflist listName targetName` command in `data/buffLists.lua`.  The order of
 buffs within the list does not affect the order in which they will be cast.
 Follow the syntax of existing sets when adding/editing your own.
 
+You can also edit/add/remove debuff lists that can be invoked with the
+`//hb debufflist listName` command in `data/debuffLists.lua`.
+Follow the syntax of existing sets when adding/editing your own.
+
 You can modify the priority with which other players will be attended to by
-editing data/priorities.xml.  Note that detection of players' jobs is not
+editing `data/priorities.lua`.  Note that detection of players' jobs is not
 perfect at the moment, so it is better to specify individual players' priorities
 by name.  Lower numbers represent higher priority.  Follow the syntax of
 existing sets when adding/editing your own.
 
 Monster abilities that do not display what debuffs they cause are specified in
-mabil_debuffs.xml.  This list is woefully incomplete, but I plan on vastly
+`mabil_debuffs.lua`.  This list is woefully incomplete, but I plan on vastly
 expanding it in the near future.  If you decide to add any, I would greatly
 appreciate it if you would share what you have added.  If you add something, and
 it isn't detected, please notify me, and I will attempt to make sure that it can
 be detected in the future.
 
-Place the healBot folder in .../Windower/addons/
+Place the healBot folder in `.../Windower/addons/`
 
 * To load healBot: `//lua load healbot`
 * To unload healBot: `//hb unload`
@@ -207,3 +213,93 @@ Place the healBot folder in .../Windower/addons/
 | //hb moveinfo off                      | Hides the moveInfo display                                                                                    |
 | //hb packetinfo on                     | Adds to the chat log packet info about monitored players                                                      |
 | //hb packetinfo off                    | Prevents packet info from being added to the chat log                                                         |
+
+### Custom / Saved Settings and loading
+
+There is an option to load up custom settings file that is setup by the end user.
+This will minimize the amount of commands that are run to get healbot up and moving.
+
+To load custom settings healBot: `//lua custom (Custom Settings List Name)`
+
+The location of the custom settings are in `data/custom_settings.lua`.
+Reference the custom lists already in there for some ideas. Further explanation of the settings and examples are below.
+
+These settings can work along with the `data/buffLists.lua` and `data/debuffLists.lua` lists that are setup to ensure that buffs and debuffs are brought in.
+Reference each of these as well to setup customized buffs and debuff lists to be brought in.
+
+### Custom Setting Example lists with explanations.
+
+#### The following custom setting entry is to assist the character Denorea as a RDM job that is using Savage Blade at 1000 TP.
+```lua
+['rdmAssistDenorea'] = {                    -- List Name that will be used to pull in - Try to make these specific since I assist other people.
+    ['assist'] = true,                      -- Auto Assist (true | false) - Is autoAssist being used?
+    ['assistName'] = 'Denorea',             -- Auto Assist (Name) - If AutoAssist is false this is not required, otherwise character name to assist.
+    ['assistEngage'] = true,                -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
+    ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['follow'] = true,                      -- Auto Follow (true | false) - Is autoFollow being used?
+    ['followTarget'] = 'Denorea',           -- Auto Follow (Name) - If autoFollow is false this is not required, otherwise character name to follow.
+    ['followDist'] = 0.3,                   -- Auto Follow Distance - If autoFollow is false this is not required, otherwise must be a number. Distance to follow character.
+    ['useWeaponSkill'] = 'Savage Blade',    -- Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
+    ['useWeaponSkillTP'] = 1000,            -- Auto Weaponskill TP threshold. - Must be a number.
+    ['applySelfBuffList'] = 'rdmExemplar',  -- Bufflist to apply to self. - This is not required
+    ['applyP1BuffList'] = 'ddExemplar',     -- Bufflist to apply first member of party. - This is not required. Bufflist for P1.
+    ['applyP2BuffList'] = 'ddExemplar',     -- Bufflist to apply second member of party. - This is not required. Bufflist for P2.
+    ['applyP3BuffList'] = 'ddExemplar',     -- Bufflist to apply third member of party. - This is not required. Bufflist for P3.
+    ['applyP4BuffList'] = 'ddExemplar',     -- Bufflist to apply fouth member of party. - This is not required. Bufflist for P4.
+    ['applyP5BuffList'] = 'ddExemplar',     -- Bufflist to apply fifth member of party. - This is not required. Bufflist for P5.
+    ['independent'] = false,                -- (true | false) toggle. Independent mode (This must be used if not assisting someone).
+    ['autoshadows'] = false,                -- (true | false) toggle. Auto shadows mode.
+    ['useDebuffs'] = false,                 -- (true | false) toggle. Turn on auto debuffing. - Not required. Turning on Debuffs.
+    ['applyDebuffList'] = 'rdmExemplar',    -- (true | false) toggle. - This is not required. Debuff list to use on mob.
+    ['ignoreTrusts'] = true,                -- (true | false) toggle. Option toggle to ignore trusts for healing.
+},
+```
+#### The following Custom setting entry is to assist the character Denorea as a DD job (WAR, COR, etc.) that is using Savage Blade at 1000 TP.
+
+```lua
+['savAssistDenorea'] = {                    -- List Name that will be used to pull in - Try to make these specific since I assist other people.
+    ['assist'] = true,                      -- Auto Assist (true | false) - Is autoAssist being used?
+    ['assistName'] = 'Denorea',             -- Auto Assist (Name) - If AutoAssist is false this is not required, otherwise character name to assist.
+    ['assistEngage'] = true,                -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
+    ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['follow'] = true,                      -- Auto Follow (true | false) - Is autoFollow being used?
+    ['followTarget'] = 'Denorea',           -- Auto Follow (Name) - If autoFollow is false this is not required, otherwise character name to follow.
+    ['followDist'] = 0.3,                   -- Auto Follow Distance - If autoFollow is false this is not required, otherwise must be a number. Distance to follow character.
+    ['useWeaponSkill'] = 'Savage Blade',    -- Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
+    ['useWeaponSkillTP'] = 1000,            -- Auto Weaponskill TP threshold. - Must be a number.
+    ['independent'] = false,                -- (true | false) toggle. Independent mode (This must be used if not assisting someone).
+    ['autoshadows'] = false,                -- (true | false) toggle. Auto shadows mode.
+    ['ignoreTrusts'] = true,                -- (true | false) toggle. Option toggle to ignore trusts for healing.
+},
+```
+
+#### The following Custom setting entry is to NOT to assist (lead a group or solo play) as a DD job (WAR, COR, etc.) that is using Savage Blade at 1000 TP.
+
+```lua
+['savIndependent'] = {                      -- List Name that will be used to pull in - Try to make these specific since I assist other people.
+    ['assist'] = false,                     -- Auto Assist (true | false) - Is autoAssist being used?
+    ['assistEngage'] = false,               -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
+    ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['follow'] = false,                     -- Auto Follow (true | false) - Is autoFollow being used?
+    ['useWeaponSkill'] = 'Savage Blade',    -- Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
+    ['useWeaponSkillTP'] = 1000,            -- Auto Weaponskill TP threshold. - Must be a number.
+    ['independent'] = true,                 -- (true | false) toggle. Independent mode (This must be used if not assisting someone).
+    ['autoshadows'] = false,                -- (true | false) toggle. Auto shadows mode.
+    ['ignoreTrusts'] = true,                -- (true | false) toggle. Option toggle to ignore trusts for healing.
+},
+```
+
+# Thanks to the Original creator and others that modified before I found this!
+## This is a mashup between Original and Updated Versions with additional features.
+
+## The Original Healbot
+
+https://github.com/lorand-ffxi/HealBot
+
+## Additions / Other ideas taken from these other repos
+
+https://github.com/PeachBlossomWine/HealBot
+
+https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
+
+https://github.com/AkadenTK/HealBot (Updated 05/21/2019)

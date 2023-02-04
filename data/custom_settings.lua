@@ -12,9 +12,33 @@ return {
         ['applyP4BuffList'] = 'ddExemplar',
         ['applyP5BuffList'] = 'ddExemplar',
         ['useDebuffs'] = false,
-        --['applyDebuffList'] = 'rdmExemplar',
+        ['applyDebuffList'] = 'rdmExemplar',
         ['independent'] = true,
-        ['autoshadows'] = true,
+        ['autoshadows'] = false,
+        ['noapproach'] = false,
+        ['ignoreTrusts'] = true,
+    },
+    ['savLead'] = {
+        ['assist'] = false,
+        ['assistEngage'] = false,
+        ['follow'] = false,
+        ['useWeaponSkill'] = 'Savage Blade',
+        ['useWeaponSkillTP'] = 1000,
+        ['useDebuffs'] = false,
+        ['independent'] = true,
+        ['autoshadows'] = false,
+        ['noapproach'] = false,
+        ['ignoreTrusts'] = true,
+    },
+    ['aeolianLead'] = {
+        ['assist'] = false,
+        ['assistEngage'] = false,
+        ['follow'] = false,
+        ['useWeaponSkill'] = 'Aeolian Edge',
+        ['useWeaponSkillTP'] = 1000,
+        ['useDebuffs'] = false,
+        ['independent'] = true,
+        ['autoshadows'] = false,
         ['noapproach'] = false,
         ['ignoreTrusts'] = true,
     },
@@ -38,7 +62,7 @@ return {
         ['noapproach'] = false,
         ['ignoreTrusts'] = true,
     },
-    ['ddAssistFendo'] = {
+    ['savAssistFendo'] = {
         ['assist'] = true,
         ['assistName'] = 'Fendo',
         ['assistEngage'] = true,
@@ -52,7 +76,7 @@ return {
         ['noapproach'] = false,
         ['ignoreTrusts'] = true,
     },
-    ['ddAssistDenorea'] = {
+    ['savAssistDenorea'] = {
         ['assist'] = true,
         ['assistName'] = 'Denorea',
         ['assistEngage'] = true,
@@ -62,7 +86,21 @@ return {
         ['useWeaponSkill'] = 'Savage Blade',
         ['useWeaponSkillTP'] = 1000,
         ['independent'] = false,
-        ['autoshadows'] = true,
+        ['autoshadows'] = false,
+        ['noapproach'] = false,
+        ['ignoreTrusts'] = true,
+    },
+    ['geoAssistDenorea'] = {
+        ['assist'] = true,
+        ['assistName'] = 'Denorea',
+        ['assistEngage'] = true,
+        ['follow'] = true,
+        ['followTarget'] = 'Denorea',
+        ['followDist'] = 0.3,
+        ['useWeaponSkill'] = 'Black Halo',
+        ['useWeaponSkillTP'] = 1000,
+        ['independent'] = false,
+        ['autoshadows'] = false,
         ['noapproach'] = false,
         ['ignoreTrusts'] = true,
     },
@@ -85,44 +123,7 @@ return {
         ['autoshadows'] = false,
         ['noapproach'] = false,
         ['useDebuffs'] = false,
-        --['applyDebuffList'] = 'rdmExemplar',
+        ['applyDebuffList'] = 'rdmExemplar',
         ['ignoreTrusts'] = true,
     },
 }
-
-
--- Things we want to set - IF you think of more let me know!
-
--- Independent Mode --
--- hb.modes.independent
-
--- Assist --
--- offense.assist.name = 'Name'
--- offense.assist.active = true
--- offense.assist.engage = true
--- offense.assist.noapproach
-
--- Follow --
--- settings.follow.active = true
--- settings.follow.target = 'Name'
--- settings.follow.distance = 0.3
-
--- Weaponskills --
--- settings.ws.self_tp = 1000
--- settings.ws.name = 'Savage Blade'
-
--- Shadows --
--- settings.autoshadows
-
--- Buff List --
--- bufflist use
--- rdmExemplar
--- utils.apply_bufflist({listName, target})
-
--- Debuff List --
--- Use a specific Debuff List if not blank
--- offense.debuffing_active
--- utils.apply_debufflist({args})
-
--- Ignore Trusts
--- settings.ignoreTrusts
