@@ -219,7 +219,7 @@ Place the healBot folder in `.../Windower/addons/`
 There is an option to load up custom settings file that is setup by the end user.
 This will minimize the amount of commands that are run to get healbot up and moving.
 
-To load custom settings healBot: `//lua custom (Custom Settings List Name)`
+To load custom settings healBot: `//hb custom (Custom Settings List Name)`
 
 The location of the custom settings are in `data/custom_settings.lua`.
 Reference the custom lists already in there for some ideas. Further explanation of the settings and examples are below.
