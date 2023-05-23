@@ -8,7 +8,9 @@ return {
             ['curaga'] = 3,
             ['cure'] = 4,
             ['waltz'] = 4,
-            ['waltzga'] = 2
+            ['waltzga'] = 2,
+            ['bluega'] = 2,
+            ['blue'] = 2,
         }
     },
     ['ignoreTrusts'] = false,

@@ -266,7 +266,7 @@ function cu.get_usable_cure(orig_tier, cure_type)
     if cure_type:startswith('waltz') then
         _p = 'tp'
         recasts = windower.ffxi.get_ability_recasts()
-    else --it starts with 'cur'
+    else --it starts with 'cur' or 'blue'
         _p = 'mp'
         recasts = windower.ffxi.get_spell_recasts()
     end
