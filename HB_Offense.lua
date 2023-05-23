@@ -7,6 +7,7 @@
 
 local offense = {
     immunities=lor_settings.load('data/mob_immunities.lua'),
+    alwaysfacetarget = true,
     assist={active = false, engage = false, noapprach = false},
     debuffs={}, ignored={}, mobs={}, dispel={},
     debuffing_active = true

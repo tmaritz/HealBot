@@ -156,7 +156,9 @@ function actions.take_action(player, partner, targ)
                         healer:take_action(actions.face_target())
                         return true
                     else
-
+                        if offense.alwaysfacetarget and self_engaged then 
+                            healer:take_action(actions.face_target())
+                        end
                         local offensive_action = actions.get_offensive_action(player)
                         if offensive_action ~= nil then
                             atcd(123, 'Offensive Action Current action: '..tostring(offensive_action.action.en))
@@ -180,6 +182,9 @@ function actions.take_action(player, partner, targ)
                     end
                 end
             elseif self_engaged and hb.modes.independent then
+                if offense.alwaysfacetarget and self_engaged then 
+                    healer:take_action(actions.face_target())
+                end
                 local independent_offensive_action = actions.get_offensive_action(player)
                 if independent_offensive_action ~= nil then
                     atcd(123, 'Independent Offensive Current action: '..tostring(independent_offensive_action.action.en))
@@ -280,7 +285,18 @@ function actions.get_offensive_action(player)
 
         if (hp_ok and partner_ok) then
             if settings.ws.name ~= nil then
-                if player.vitals.tp > setting_self_tp then
+                if settings.ws.keep_AM3 == true and buffs.buff_active(272) == false then
+                    if player.vitals.tp == 3000 then
+                        if settings.ws.AM3_name ~= nil then
+                            if actions.is_self_weaponskill(settings.ws.AM3_name) == true  then
+                                --atc(123,'Attempting a self targetting WS '..settings.ws.name)
+                                return {action=lor_res.action_for(settings.ws.AM3_name),name='<me>'}
+                            else
+                                return {action=lor_res.action_for(settings.ws.AM3_name),name='<t>'}
+                            end
+                        end
+                    end
+                elseif player.vitals.tp > setting_self_tp then
                     if actions.is_self_weaponskill(settings.ws.name) == true  then
                         --atc(123,'Attempting a self targetting WS '..settings.ws.name)
                         return {action=lor_res.action_for(settings.ws.name),name='<me>'}
