@@ -21,10 +21,16 @@ return {
     ["Arciela"] = S{
         2
     },
+    ["Asena"] = S{
+        28
+    },
     ["August"] = S{
         2
     },
     ["Aurix"] = S{
+        6
+    },
+    ["Awoken Andhrimnir"] = S{
         6
     },
     ["Awoken Ariri Samariri"] = S{
@@ -68,7 +74,8 @@ return {
         28
     },
     ["Bozzetto Deathbringer"] = S{
-        2
+        2,
+        7
     },
     ["Bozzetto Don"] = S{
         2
@@ -108,6 +115,10 @@ return {
     ["Bozzetto Rascal"] = S{
         2,
         28
+    },
+    ["Bozzetto Ravager"] = S{
+        2,
+        7
     },
     ["Bozzetto Regent"] = S{
         28
@@ -149,6 +160,9 @@ return {
     ["Cep-Kamuy"] = S{
         2
     },
+    ["Chaos Steward"] = S{
+        28
+    },
     ["Chest O'Plenty"] = S{
         6
     },
@@ -166,6 +180,9 @@ return {
     },
     ["Corporal Tombstone"] = S{
         2
+    },
+    ["Dabbat al-Ard"] = S{
+        28
     },
     ["Dark Circle"] = S{
         2,
@@ -215,6 +232,10 @@ return {
         2,
         6
     },
+    ["Experimental Lamia"] = S{
+        6,
+        13
+    },
     ["Fire Circle"] = S{
         3,
         4,
@@ -255,6 +276,9 @@ return {
     },
     ["Gnarled Rampart"] = S{
         194
+    },
+    ["Gulltop"] = S{
+        6
     },
     ["Harpimaira"] = S{
         4
@@ -337,6 +361,9 @@ return {
     ["Lithicthrower Image"] = S{
         12
     },
+    ["Mahjlaef the Paintorn"] = S{
+        6
+    },
     ["Monolithic Boulder"] = S{
         2
     },
@@ -359,6 +386,9 @@ return {
     },
     ["Okyupete"] = S{
         2
+    },
+    ["Ongo"] = S{
+        7
     },
     ["Ou"] = S{
         2,
@@ -401,6 +431,9 @@ return {
     ["Sovereign Behemoth"] = S{
         2
     },
+    ["Tapana"] = S{
+        6
+    },
     ["Thunder Circle"] = S{
         4,
         6,
@@ -409,6 +442,10 @@ return {
     },
     ["Tinnin"] = S{
         2
+    },
+    ["Tolba"] = S{
+        13,
+        194
     },
     ["Tumult Curator"] = S{
         2
