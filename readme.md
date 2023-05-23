@@ -114,7 +114,7 @@ Place the healBot folder in `.../Windower/addons/`
 | //hb refresh                           | Reload settings xmls in the data folder                                                                       |
 | //hb status                            | Displays whether or not healBot is active in the chat log                                                     |
 | //hb mincure (#)                       | Set the minimum cure tier to # (default is 3 - if this is spammy set it to 4 to be safe)                      |
-| //hb independent (on | off)            | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
+| //hb independent (on/off)              | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
 | //hb customsettings listName           | Loads a customized settings profile from custom_settings.lua                                                  |
 | //hb custom listName                   | Loads a customized settings profile from custom_settings.lua (customsettings shorthand)                       |
 
@@ -161,6 +161,13 @@ Place the healBot folder in `.../Windower/addons/`
 | //hb autoshadows on                    | Enables autoshadow upkeep - Utsusemi, Blink, Third Eye, etc.                                              |
 | //hb autoshadows off                   | Disables autoshadow upkeep                                                                                |
 
+#### Action Spamming
+| Command                                | Action                                                                                                    |
+| ---------------------------------------| ----------------------------------------------------------------------------------------------------------|
+| //hb spam on                           | Turns on spell or action spamming                                                                         |
+| //hb spam off                          | Turns off spell or action  spamming                                                                       |
+| //hb spam (name)                       | Spell or action name to be spammed                                                                        |
+
 #### Auto Assist
 | Command                            | Action                                                                                                        |
 | -----------------------------------| --------------------------------------------------------------------------------------------------------------|
@@ -201,6 +208,8 @@ Place the healBot folder in `.../Windower/addons/`
 | //hb weaponskill waitfor (player) (tp) | Waits for another player to use weaponskill at a certain TP                                                   |
 | //hb weaponskill nopartner             | Does not wait for another player to use weaponskill tain TP                                                   |
 | //hb ws use (ws name)                  | Selects weaponskill to use (weaponskill shorthand)                                                            |
+| //hb ws keepAM3 (true|false)           | Selects turns on option to maintin AM3                                                                        |
+| //hb ws setAM3 (ws name)               | Selects weaponskill to upkeep AM3                                                                             |
 | //hb ws tp (number 1000-2999)          | Selects min tp for a weaponskill (weaponskill shorthand)                                                      |
 | //hb ws hp (sign) (mob hp%)            | Sets the mob HP for weaponskill use (example < 100  or > 1) (weaponskill shorthand)                           |
 | //hb ws waitfor (player) (tp)          | Waits for another player to use weaponskill at a certain TP (weaponskill shorthand)                           |
@@ -286,6 +295,24 @@ Reference each of these as well to setup customized buffs and debuff lists to be
     ['independent'] = true,                 -- (true | false) toggle. Independent mode (This must be used if not assisting someone).
     ['autoshadows'] = false,                -- (true | false) toggle. Auto shadows mode.
     ['ignoreTrusts'] = true,                -- (true | false) toggle. Option toggle to ignore trusts for healing.
+},
+```
+
+#### The following Custom setting entry is to NOT to assist (lead a group or solo play) as a Bard to maintain AM3 that is using Mordant Rime at 1000 TP otherwise.
+
+```lua
+['brdLead'] = {                      -- List Name that will be used to pull in - Try to make these specific since I assist other people.
+    ['assist'] = false,                     -- Auto Assist (true | false) - Is autoAssist being used?
+    ['assistEngage'] = false,               -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
+    ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['follow'] = false,                     -- Auto Follow (true | false) - Is autoFollow being used?
+    ['useWeaponSkill'] = "Mordant Rime",   -- Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
+    ['useWeaponSkillTP'] = 1000,            -- Auto Weaponskill TP threshold. - Must be a number.
+    ['independent'] = true,                 -- (true | false) toggle. Independent mode (This must be used if not assisting someone).
+    ['autoshadows'] = false,                -- (true | false) toggle. Auto shadows mode.
+    ['ignoreTrusts'] = true,                -- (true | false) toggle. Option toggle to ignore trusts for healing.
+    ['AM3_name'] = 'Mordant Rime',          -- AM3 Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
+    ['keep_AM3'] = true,                    -- Maintin AM3 - Will Weaponskill at 3000 TP If AM3 is not up.
 },
 ```
 

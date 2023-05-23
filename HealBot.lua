@@ -33,7 +33,8 @@ hb = {
 }
 healer = T{}
 settings = {}
-settings.ws = {}
+settings.ws = {keep_AM3 = false, AM3_name = nil}
+
 _libs.lor.debug = hb.modes.debug
 
 res = require('resources')

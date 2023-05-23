@@ -169,12 +169,20 @@ function processCommand(command,...)
 
             settings.ws.self_tp = self_tp
             atc("Will weaponskill when TP is "..gte.." "..self_tp)
+        elseif (cmd == 'setAM3') then    -- AM3 ws name
+            table.remove(args, 1)
+            utils.register_AM3_ws(args)
+        elseif (cmd == 'keepAM3') then
+            local keepAM3 = toboolean(args[2])
+            settings.ws.keep_AM3 = keepAM3
+            atc("Setting to upkeep AM3 to "..tostring(keepAM3))
         else
             if S{'use','set'}:contains(cmd) then    -- ws name
                 table.remove(args, 1)
             end
             utils.register_ws(args)
         end
+
     elseif S{'spam','nuke'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (settings.spam.active and 'off' or 'on')
         if S{'on','true'}:contains(cmd) then
@@ -482,6 +490,18 @@ function utils.register_ws(args)
     end
 end
 
+function utils.register_AM3_ws(args)
+    local argstr = table.concat(args,' ')
+    local wsname = utils.formatActionName(argstr)
+    local ws = lor_res.action_for(wsname)
+    if (ws ~= nil) then
+        settings.ws.AM3_name = ws.en
+        atcfs('Will now use %s for AM3', ws.en)
+    else
+        atcfs(123,'Error: Invalid weaponskill name: %s', wsname)
+    end
+end
+
 
 function utils.apply_bufflist(args)
     local mj = windower.ffxi.get_player().main_job
@@ -554,6 +574,10 @@ function utils.apply_custom_settings(args)
                 settings.follow.target = custom_settings['followTarget']
             elseif key == 'followDist' then
                 settings.follow.distance = custom_settings['followDist']
+            elseif key == 'keep_AM3' then
+                settings.ws.keep_AM3  = custom_settings['keep_AM3']
+            elseif key == 'AM3_name' then
+                settings.ws.AM3_name  = custom_settings['AM3_name']
             elseif key == 'useWeaponSkill' then
                 settings.ws.name = custom_settings['useWeaponSkill']
             elseif key == 'useWeaponSkillTP' then
@@ -854,6 +878,15 @@ function toRomanNumeral(val)
         end
     end
     return dec2roman[val]
+end
+
+
+function toboolean(str)
+    local bool = false
+    if str == "true" then
+        bool = true
+    end
+    return bool
 end
 
 --==============================================================================
