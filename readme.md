@@ -22,7 +22,7 @@ fact that there is no notification given when one song overwrites another, or
 maintaining multiple buffs that have the same name.  That being said, if you
 only want to maintain 2-3 songs without using a dummy song, it may work.  I have
 an idea about how to support BRD songs, so that should be coming soon. Until then
-use Singer - https://github.com/Ivaar/Windower-addons/tree/master/Singer
+use Singer - https://github.com/zpaav/Singer
 
 GEO isn't well supported at this time. Alternative:
 
