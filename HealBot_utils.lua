@@ -11,7 +11,7 @@ utils = {normalize={}}
 local lor_res = _libs.lor.resources
 local lc_res = lor_res.lc_res
 local ffxi = _libs.lor.ffxi
-utils.manual_actions = T{}
+local debuffs_lists = L()
 
 function utils.normalize_str(str)
     return str:lower():gsub(' ', '_'):gsub('%.', '')
@@ -19,20 +19,17 @@ end
 
 
 function utils.normalize_action(action, action_type)
-    --atcf('utils.normalize_action(%s, %s)', tostring(action), tostring(action_type))
     if istable(action) then return action end
     if action_type == nil then return nil end
     if isstr(action) then
         if tonumber(action) == nil then
             local naction = res[action_type]:with('en', action)
             if naction ~= nil then
-                --atcf("res.%s[%s] found for %s", action_type, naction.id, action)
                 return naction
             end
-            --atcf("Searching resources for normalized name for %s [%s]", action, action_type)
             return res[action_type]:with('enn', utils.normalize_str(action))
         end
-        action = tonumber(action)
+        action = tonumber(action) 
     end
     if isnum(action) then
         return res[action_type][action]
@@ -83,22 +80,128 @@ end
 function processCommand(command,...)
     command = command and command:lower() or 'help'
     local args = map(windower.convert_auto_trans, {...})
-
+	local player = windower.ffxi.get_player()
+    
     if S{'reload','unload'}:contains(command) then
-        windower.send_command(('lua %s %s'):format(command, _addon.name))
+		windower.send_command(('lua %s %s'):format(command, 'healbot'))
     elseif command == 'refresh' then
-        utils.load_configs()
+	    utils.load_configs()
+	elseif S{'show','sh'}:contains(command) then
+		if (args[1] and args[1]:lower() == 'party') or not args[1] then
+			atc('Party Debuff Table:')
+			table.vprint(buffs.debuffList)
+		end
+		if (args[1] and args[1]:lower() == 'aura') or not args[1] then
+			atc('Aura Table:')
+			table.vprint(buffs.auras)
+		end
+		if (args[1] and args[1]:lower() == 'ignore') or not args[1] then
+			atc('Ignored Debuff Table:')
+			table.vprint(buffs.ignored_debuffs)
+		end
+		if (args[1] and args[1]:lower() == 'offense') or not args[1] then
+			atc('Offense Table:')
+			table.vprint(offense.mobs)
+		end
+		if (args[1] and args[1]:lower() == 'debuff') or not args[1] then
+			atc('Offense debuffs table:')
+			table.vprint(offense.debuffs)
+		end
+		if (args[1] and args[1]:lower() == 'dispel') or not args[1] then
+			atc('Dispel table:')
+			table.vprint(offense.dispel.mobs)
+		end
+		if (args[1] and args[1]:lower() == 'follow') or not args[1] then
+			local targ_value = settings.follow.target or 'NIL'
+			atc('Follow target: '..targ_value)
+		end
+		if (args[1] and args[1]:lower() == 'buffs') or not args[1] then
+			atc('Buffs table: ')
+			table.vprint(buffs.buffList)
+		end
     elseif S{'start','on'}:contains(command) then
         hb.activate()
     elseif S{'stop','end','off'}:contains(command) then
         hb.active = false
         printStatus()
+    elseif S{'aoe'}:contains(command) then
+        local cmd = args[1] and args[1]:lower() or (settings.aoe_na and 'off' or 'resume')
+        if S{'off','end','false','pause'}:contains(cmd) then
+            settings.aoe_na = false
+            atc('AOE is now off.')
+        else
+            settings.aoe_na = true
+			atc('AOE is active.')
+        end
+	elseif S{'dispel'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() or (offense.dispel.active and 'off' or 'resume')
+		if S{'off','end','false','pause'}:contains(cmd) then
+			offense.dispel.active = false
+			atc('Auto Dispel is now off.')
+		elseif S{'resume','on'}:contains(cmd) then
+			offense.dispel.active = true
+			atc('Auto Dispel is now active.')
+		elseif cmd == 'ignore' then
+			local mob_string = args[2]:lower():capitalize()
+			offense.dispel.ignored:add(mob_string)
+			atc('Added mob to dispel ignore list: '..mob_string)
+		elseif cmd == 'unignore' then
+			local mob_string = args[2]:lower():capitalize()
+			if offense.dispel.ignored:contains(mob_string) then
+				offense.dispel.ignored:remove(mob_string)
+				atc('Removed mob from dispel ignore list: '..mob_string)
+				local show_dispel_ignore_names = ''
+				for k,v in pairs(offense.dispel.ignored) do
+					show_dispel_ignore_names = show_dispel_ignore_names..'['..k..']'
+				end
+				atc('Dispel Ignore List: '..show_dispel_ignore_names)
+			else
+				atc('Error: Mob not in current list')
+			end
+		end
     elseif S{'disable'}:contains(command) then
         if not validate(args, 1, 'Error: No argument specified for Disable') then return end
         disableCommand(args[1]:lower(), true)
     elseif S{'enable'}:contains(command) then
-        if not validate(args, 1, 'Error: No argument specified for Enable') then return end
+        if not validate(args, 1, 'Error: No argument specified for Enable') then return end 
         disableCommand(args[1]:lower(), false)
+	 elseif S{'moblist'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() or (offense.moblist.active and 'off' or 'resume')
+		if S{'off','end','false','pause'}:contains(cmd) then
+			offense.moblist.active = false
+			atc('Moblist debuffing is now off.')
+		elseif S{'resume','on'}:contains(cmd) then
+			offense.moblist.active = true
+			atc('Moblist debuffing is now active.')
+		elseif cmd == 'add' and args[2] then
+			local mob_string = args[2]:lower():capitalize()
+			offense.moblist.mobs:add(mob_string)
+			atc('Added mob to debuff list: '..mob_string)
+		elseif cmd == 'remove' and args[2] then
+			local mob_string = args[2]:lower():capitalize()
+			if offense.moblist.mobs:contains(mob_string) then
+				offense.moblist.mobs:remove(mob_string)
+				atc('Removed mob from debuff list: '..mob_string)
+				local show_moblist_names = ''
+				for k,v in pairs(offense.moblist.mobs) do
+					show_moblist_names = show_moblist_names..'['..k..']'
+				end
+				atc('Debuff Mob List: '..show_moblist_names)
+			else
+				atc('Error: Mob not in current list')
+			end
+		elseif (cmd == 'show' or cmd == 'list') and offense.moblist.mobs then
+			local show_moblist_names = ''
+			for k,v in pairs(offense.moblist.mobs) do
+				show_moblist_names = show_moblist_names..'['..k..']'
+			end
+			atc('Debuff Mob List: '..show_moblist_names)
+		elseif cmd == 'clear' or cmd == 'reset' then
+			offense.moblist.mobs:clear()
+			atc('Debuff Mob List cleared')
+		else
+			atc(123,'Error: No parameter - [add / remove / on / off / clear] specified.')
+		end
     elseif S{'assist','as'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (offense.assist.active and 'off' or 'resume')
         if S{'off','end','false','pause'}:contains(cmd) then
@@ -117,9 +220,48 @@ function processCommand(command,...)
                 offense.assist.engage = false
                 atc('Will no longer enagage when assisting.')
             else
-                offense.assist.engage = true
-                atc('Will now enagage when assisting.')
+                if not (offense.assist.nolock) then
+                    offense.assist.engage = true
+                    atc('Will now enagage when assisting.')
+                else
+                    offense.assist.engage = false
+					atc('ERROR: Cannot engage/attack to assist if using nolock.')
+                end
             end
+		elseif S{'nolock'}:contains(cmd) then
+            local cmd2 = args[2] and args[2]:lower() or (offense.assist.nolock and 'off' or 'resume')
+            if S{'off','end','false','pause'}:contains(cmd2) then
+                offense.assist.nolock = false
+                atc('Will now use target/lock on when assisting.')
+            else
+				if not (offense.assist.engage) then
+					offense.assist.nolock = true
+					atc('Will now use mob id to cast spells when assisting.')
+				else
+					offense.assist.nolock = false
+					atc('ERROR: Cannot use nolock/mob id to assist if engaging to attack.')
+				end
+            end
+        elseif S{'sametarget'}:contains(cmd) then
+            local cmd2 = args[2] and args[2]:lower() or (offense.assist.sametarget and 'off' or 'resume')
+            if S{'off','end','false','pause'}:contains(cmd2) then
+                offense.assist.sametarget = false
+                atc('Will now NOT switch to the SAME mob when engaged.')
+            else
+				if not (offense.assist.nolock) and offense.assist.engage then
+					offense.assist.sametarget = true
+					atc('Will now switch to the same mob when attack/engage to assist.')
+				else
+					offense.assist.sametarget = false
+					atc('ERROR: Cannot use sametarget to attack/engage if using [nolock] or not [attack/engage].')
+				end
+            end
+		elseif S{'job','j'}:contains(cmd) then
+			if args[2] then
+				offense.register_assistee(args[2],true)
+			else
+				atc('ERROR: No JOB specified.')
+			end
         elseif S{'noapproach'}:contains(cmd) then
             local cmd2 = args[2] and args[2]:lower() or (offense.assist.noapproach and 'off' or 'resume')
             if S{'off','end','false','pause'}:contains(cmd2) then
@@ -129,8 +271,35 @@ function processCommand(command,...)
                 offense.assist.noapproach = true
                 atc('Will no longer approach mobs when assisting. Set the follow dist to .5 to make sure you can reach mobs.')
             end
+        elseif S{'mobdistancemin'}:contains(cmd) then -- This isn't working fully yet
+            local cmd = tonumber(args[2]) or 2.2
+            offense.mobdistancemin = cmd
+            atc("Will force mob distance minimum to "..cmd..".")
+        elseif S{'mobdistancemax'}:contains(cmd) then -- This isn't working fully yet
+            local cmd = tonumber(args[2]) or 24.0
+            offense.mobdistancemax = cmd
+            atc("Will force mob distance maximum to "..cmd..".")
+        elseif S{'forcemobdist'}:contains(cmd) then -- This isn't working fully yet
+            local cmd = args[2] and args[2]:lower() or (offense.forcemobdist and 'off' or 'resume')
+            if S{'off','end','false','pause'}:contains(cmd) then
+                offense.forcemobdist = false
+                atc('Will no longer force a mob distance when attacking.')
+            else
+                offense.forcemobdist = true
+                atc('Will force a mob distance when attacking.')
+            end
         else    --args[1] is guaranteed to have a value if this is reached
             offense.register_assistee(args[1])
+        end
+
+    elseif S{'facetarget'}:contains(command) then
+        local cmd = args[1] and args[1]:lower() or (offense.alwaysfacetarget and 'off' or 'resume')
+        if S{'off','end','false','pause'}:contains(cmd) then
+            offense.alwaysfacetarget = false
+            atc('Will not forcefully face the target when attacking.')
+        else
+            offense.alwaysfacetarget = true
+            atc('Will forcefully face the target when attacking.')
         end
     elseif S{'ws','weaponskill'}:contains(command) then
         local lte,gte = string.char(0x81, 0x85),string.char(0x81, 0x86)
@@ -182,7 +351,6 @@ function processCommand(command,...)
             end
             utils.register_ws(args)
         end
-
     elseif S{'spam','nuke'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (settings.spam.active and 'off' or 'on')
         if S{'on','true'}:contains(cmd) then
@@ -201,6 +369,28 @@ function processCommand(command,...)
             end
             utils.register_spam_action(args)
         end
+	elseif S{'stymie'}:contains(command) then
+		if player.main_job == 'RDM' then
+			local cmd = args[1] and args[1]:lower() or (settings.spam.active and 'off' or 'on')
+			if S{'on','true'}:contains(cmd) then
+				offense.stymie.active = true
+				if (offense.stymie.spell ~= '') then
+					atc('Stymie is now on. Action: '..offense.stymie.spell)
+				else
+					atc('Stymie is now on. To set a spell to use: //hb stymie use <action>')
+				end
+			elseif S{'off','false'}:contains(cmd) then
+				offense.stymie.active = false
+				atc('Stymie is now off.')
+			else
+				if S{'use','set'}:contains(cmd) then
+					table.remove(args, 1)
+				end
+				utils.register_stymie(args)
+			end
+		else
+			atc('Error: Not RDM main job')
+		end
     elseif S{'debuff', 'db'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (offense.debuffing_active and 'off' or 'on')
         if S{'on','true'}:contains(cmd) then
@@ -209,15 +399,45 @@ function processCommand(command,...)
         elseif S{'off','false'}:contains(cmd) then
             offense.debuffing_active = false
             atc('Debuffing is now off.')
+		elseif S{'bt'}:contains(cmd) then
+			local battle_cmd = args[2] and args[2]:lower() or (offense.debuffing_battle_target and 'off' or 'on')
+			if S{'on','true'}:contains(battle_cmd) then
+				offense.debuffing_active = true
+				offense.debuffing_battle_target = true
+				atc('WARNING! Debuffing is now set to battle targets.')
+			elseif S{'off','false'}:contains(battle_cmd) then
+				offense.debuffing_battle_target = false
+				atc('DISABLED debuffing on battle targets.')
+			end
         elseif S{'rm','remove'}:contains(cmd) then
             utils.register_offensive_debuff(table.slice(args, 2), true)
         elseif S{'ls','list'}:contains(cmd) then
-            pprint_tiered(offense.debuffs)
+			local debuff_print = ''
+			for k,v in pairs(offense.debuffs) do
+				debuff_print = debuff_print..offense.debuffs[k].spell.en..','
+			end
+			atc('Debuffs: '..debuff_print)
         else
             if S{'use','set'}:contains(cmd) then
                 table.remove(args, 1)
             end
             utils.register_offensive_debuff(args, false)
+        end
+	elseif S{'mldebuff', 'mldb'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() 
+        if S{'rm','remove'}:contains(cmd) then
+            utils.register_offensive_debuff(table.slice(args, 2), true, true)
+        elseif S{'ls','list'}:contains(cmd) then
+            local debuff_print = ''
+			for k,v in pairs(offense.moblist.debuffs) do
+				debuff_print = debuff_print..offense.moblist.debuffs[k].spell.en..','
+			end
+			atc('Debuffs for Moblist: '..debuff_print)
+        else
+            if S{'use','set'}:contains(cmd) then
+                table.remove(args, 1)
+            end
+            utils.register_offensive_debuff(args, false, true)
         end
     elseif command == 'mincure' then
         if not validate(args, 1, 'Error: No argument specified for minCure') then return end
@@ -229,13 +449,49 @@ function processCommand(command,...)
             atc('Error: Invalid argument specified for minCure')
         end
     elseif command == 'mincuraga' then
-        if not validate(args, 1, 'Error: No argument specified for minCure') then return end
+        if not validate(args, 1, 'Error: No argument specified for minCuraga') then return end
         local val = tonumber(args[1])
         if (val ~= nil) and (1 <= val) and (val <= 6) then
             settings.healing.min.curaga = val
             atc('Minimum curaga tier set to '..val)
         else
-            atc('Error: Invalid argument specified for minCure')
+            atc('Error: Invalid argument specified for minCuraga')
+        end
+    elseif command == 'minwaltz' then
+        if not validate(args, 1, 'Error: No argument specified for minWaltz') then return end
+        local val = tonumber(args[1])
+        if (val ~= nil) and (1 <= val) and (val <= 5) then
+            settings.healing.min.waltz = val
+            atc('Minimum waltz tier set to '..val)
+        else
+            atc('Error: Invalid argument specified for minWaltz')
+        end
+    elseif command == 'minwaltzga' then
+        if not validate(args, 1, 'Error: No argument specified for minWaltzga') then return end
+        local val = tonumber(args[1])
+        if (val ~= nil) and (1 <= val) and (val <= 2) then
+            settings.healing.min.waltzga = val
+            atc('Minimum waltzga tier set to '..val)
+        else
+            atc('Error: Invalid argument specified for minWaltzga')
+        end
+    elseif command == 'minblue' then
+        if not validate(args, 1, 'Error: No argument specified for minBlue') then return end
+        local val = tonumber(args[1])
+        if (val ~= nil) and (1 <= val) and (val <= 4) then
+            settings.healing.min.blue = val
+            atc('Minimum blue tier set to '..val)
+        else
+            atc('Error: Invalid argument specified for minBlue')
+        end
+    elseif command == 'minbluega' then
+        if not validate(args, 1, 'Error: No argument specified for minBluega') then return end
+        local val = tonumber(args[1])
+        if (val ~= nil) and (1 <= val) and (val <= 2) then
+            settings.healing.min.bluega = val
+            atc('Minimum bluega tier set to '..val)
+        else
+            atc('Error: Invalid argument specified for minBluega')
         end
     elseif command == 'reset' then
         if not validate(args, 1, 'Error: No argument specified for reset') then return end
@@ -251,7 +507,7 @@ function processCommand(command,...)
             atc('Error: Invalid argument specified for reset: '..arg[1])
             return
         end
-
+        
         local resetTarget
         if (args[2] ~= nil) and (args[3] ~= nil) and (args[2]:lower() == 'on') then
             local pname = utils.getPlayerName(args[3])
@@ -262,7 +518,7 @@ function processCommand(command,...)
                 return
             end
         end
-        resetTarget = resetTarget or 'ALL'
+        resetTarget = resetTarget or 'ALL' 
         local rtmsg = resetTarget or 'all monitored players'
         if b then
             buffs.resetBuffTimers(resetTarget)
@@ -274,8 +530,12 @@ function processCommand(command,...)
         end
     elseif command == 'buff' then
         buffs.registerNewBuff(args, true)
+	elseif command == 'buffjob' then
+	    buffs.registerNewBuff(args, true, true)
     elseif S{'cancelbuff','nobuff'}:contains(command) then
         buffs.registerNewBuff(args, false)
+	elseif S{'cancelbuffjob','nobuffjob'}:contains(command) then
+        buffs.registerNewBuff(args, false, true)
     elseif S{'bufflist','bl'}:contains(command) then
         if not validate(args, 1, 'Error: No argument specified for BuffList') then return end
         utils.apply_bufflist(args)
@@ -291,7 +551,9 @@ function processCommand(command,...)
     elseif S{'follow','f'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (settings.follow.active and 'off' or 'resume')
         if S{'off','end','false','pause','stop','exit'}:contains(cmd) then
+			atc('Follow is now off.')
             settings.follow.active = false
+			settings.follow.target = nil
         elseif S{'distance', 'dist', 'd'}:contains(cmd) then
             local dist = tonumber(args[2])
             if (dist ~= nil) and (0 < dist) and (dist < 45) then
@@ -307,6 +569,15 @@ function processCommand(command,...)
             else
                 atc(123,'Error: Unable to resume follow - no target set')
             end
+		elseif S{'job', 'j'}:contains(cmd) then
+		    local pname = utils.getPlayerNameFromJob(args[2])
+			if (pname ~= nil) then
+                settings.follow.target = pname
+                settings.follow.active = true
+                atc('Now following '..settings.follow.target..'.')
+            else
+                atc(123,'Error: Invalid JOB provided as a follow target: '..tostring(args[2]))
+            end
         else    --args[1] is guaranteed to have a value if this is reached
             local pname = utils.getPlayerName(args[1])
             if (pname ~= nil) then
@@ -319,15 +590,51 @@ function processCommand(command,...)
         end
     elseif S{'ignore', 'unignore', 'watch', 'unwatch'}:contains(command) then
         monitorCommand(command, args[1])
+	elseif command == 'watchall' then
+        if watchall == false then
+            watchall = true
+            atc(123,'Watch all parties set to true.')
+        elseif watchall == true then
+            watchall = false
+            atc(123,'Watch all parties set to false.')
+        end
+	elseif S{'showdebuff'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() or (hb.showdebuff and 'off' or 'on')
+        if S{'on','true'}:contains(cmd) then
+            hb.showdebuff = true
+            atc('Debuff List is displayed.')
+			hb.txts.debuffList:visible(true)
+        elseif S{'off','false'}:contains(cmd) then
+            hb.showdebuff = false
+			hb.txts.debuffList:visible(false)
+            atc('Debuff List is hidden.')
+		end
+	elseif S{'automp'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() or (hb.autoRecoverMPMode and 'off' or 'on')
+        if S{'on','true'}:contains(cmd) then
+            hb.autoRecoverMPMode = true
+            atc('Auto Recover MP [Coalition Ether] is ON.')
+        elseif S{'off','false'}:contains(cmd) then
+			hb.autoRecoverMPMode = false
+            atc('Auto Recover MP [Coalition Ether] is OFF.')
+		end
+	elseif S{'autohp'}:contains(command) then
+		local cmd = args[1] and args[1]:lower() or (hb.autoRecoverHPMode and 'off' or 'on')
+        if S{'on','true'}:contains(cmd) then
+            hb.autoRecoverHPMode = true
+            atc('Auto Recover HP [Vile Elixir] is ON.')
+        elseif S{'off','false'}:contains(cmd) then
+			hb.autoRecoverHPMode = false
+            atc('Auto Recover HP [Vile Elixir] is OFF.')
+		end
     elseif command == 'ignoretrusts' then
         utils.toggleX(settings, 'ignoreTrusts', args[1], 'Ignoring of Trust NPCs', 'IgnoreTrusts')
     elseif command == 'packetinfo' then
         toggleMode('showPacketInfo', args[1], 'Packet info display', 'PacketInfo')
     elseif command == 'debug' then
         toggleMode('debug', args[1], 'Debug mode', 'debug mode')
-    elseif S{'independent','inde'}:contains(command) then
+    elseif S{'ind','inde','independent'}:contains(command) then
         toggleMode('independent', args[1], 'Independent mode', 'independent mode')
-
     elseif S{'autoshadows','shadows'}:contains(command) then
         local cmd = args[1] and args[1]:lower() or (offense.assist.active and 'off' or 'resume')
         if S{'off','end','false','pause'}:contains(cmd) then
@@ -348,65 +655,6 @@ function processCommand(command,...)
         else
             utils.toggleVisible(boxName, args[1])
         end
-    elseif S{'manual','m'}:contains(command) then
-        -- manually do thing.
-        local t = nil
-        local targs = L{...}
-        local action_name_candidate = windower.convert_auto_trans(targs:concat(' '))
-        local action = lor_res.action_for(action_name_candidate)
-        if not action then
-            t = targs:last()
-            targs:remove(targs:length())
-            action_name_candidate = windower.convert_auto_trans(targs:concat(' '))
-            action = lor_res.action_for(action_name_candidate)
-        end
-        if not action then
-            atc(123, 'Error: could not find action: "'..action_name_candidate..'"')
-            return
-        end
-        if not healer:can_use(action) or not utils.ready_to_use(action) then
-            atc(123, 'Error: Action cannot be used or isn\'t ready for use: '..action.en)
-            return
-        end
-
-        if t and not ffxi.target_is_valid(action, t) then
-            atc(123, 'Error: Action ('..action.en..') cannot be used on: '..t)
-            return
-        end
-        if not t then
-            local mob = windower.ffxi.get_mob_by_target('t')
-            if ffxi.target_is_valid(action, mob) then
-                if utils.is_npc(mob.id) then
-                    t = mob and mob.id
-                else
-                    t = mob and mob.name
-                end
-            end
-        end
-        if not t then
-            local mob = windower.ffxi.get_mob_by_target('me')
-            if ffxi.target_is_valid(action, mob) then
-                t = mob and mob.name
-            end
-        end
-        if t then
-            local exists_already = false
-            if hb.manual_action and hb.manual_action.action.id == action.id then
-                exists_already = true
-            end
-            for _,v in ipairs(utils.manual_actions) do
-                if v.action.id == action.id then
-                    exists_already = true
-                end
-            end
-            if exists_already then
-                atc(123, 'Error: action already in manual queue: '..action.en)
-            else
-                utils.manual_actions:append({action=action,name=t,target=t})
-            end
-        else
-            atc(123,'Error: No target provided.')
-        end
     elseif S{'customsettings','custom'}:contains(command) then
         if not validate(args, 1, 'Error: No argument specified for Custom Settings') then return end
         utils.apply_custom_settings(args)
@@ -423,7 +671,7 @@ function processCommand(command,...)
     elseif command == 'info' then
         if not _libs.lor.exec then
             atc(3,'Unable to parse info.  Windower/addons/libs/lor/lor_exec.lua was unable to be loaded.')
-            atc(3,'If you would like to use this function, please visit https://github.com/lorand-ffxi/lor_libs to download it.')
+            atc(3,'If you would like to use this function, please visit https://github.com/zpaav/lor_libs/ to download it.')
             return
         end
         local cmd = args[1]     --Take the first element as the command
@@ -445,21 +693,62 @@ end
 utils.get_player_id = _libs.lor.advutils.scached(_get_player_id)
 
 
-function utils.register_offensive_debuff(args, cancel)
+function utils.register_offensive_debuff(args, cancel, mob_debuff_list_flag)
     local argstr = table.concat(args,' ')
-    local spell_name = utils.formatActionName(argstr)
-    local spell = lor_res.action_for(spell_name)
-    if (spell ~= nil) then
-        if healer:can_use(spell) then
-            offense.maintain_debuff(spell, cancel)
-        else
-            atcfs(123,'Error: Unable to cast %s', spell.en)
+    local snames = argstr:split(',')
+    for index,sname in pairs(snames) do
+        if (tostring(index) ~= 'n') then
+            if sname:lower() == 'all' and cancel then
+				if mob_debuff_list_flag then
+				atcf(123,'Removing all debuffs from moblist debuff list.')
+					for k,v in pairs(offense.moblist.debuffs) do
+						atcf('Removing debuff: ' ..offense.moblist.debuffs[k].spell.enn)
+						offense.moblist.debuffs[k] = nil
+					end
+				else
+					atcf(123,'Removing all debuffs on mobs.')
+					for k,v in pairs(offense.debuffs) do
+						atcf('Removing debuff: ' ..offense.debuffs[k].spell.enn)
+						offense.debuffs[k] = nil
+					end
+				end
+            else
+                local spell_name = utils.formatActionName(sname:trim())
+                local spell = lor_res.action_for(spell_name)
+                if (spell ~= nil) then
+                    if healer:can_use(spell) then
+						if mob_debuff_list_flag then
+							offense.maintain_debuff(spell, cancel, true)
+						else
+							offense.maintain_debuff(spell, cancel)
+						end
+                    else
+                        atcfs(123,'Error: Unable to cast %s', spell.en)
+                    end
+                else
+                    atcfs(123,'Error: Invalid spell name: %s', spell_name)
+                end
+            end
         end
-    else
-        atcfs(123,'Error: Invalid spell name: %s', spell_name)
     end
 end
 
+function utils.register_stymie(args)
+    local argstr = table.concat(args,' ')
+    local action_name = utils.formatActionName(argstr)
+    local action = lor_res.action_for(action_name)
+    if (action ~= nil) then
+        if healer:can_use(action) then
+            offense.stymie.spell = action.en
+			offense.maintain_debuff(action, false)
+            atc('Will now use Stymie with spell: ', offense.stymie.spell)
+        else
+            atc(123,'Error: Unable to cast: ', action.en)
+        end
+    else
+        atc(123,'Error: Invalid action name: ', action_name)
+    end
+end
 
 function utils.register_spam_action(args)
     local argstr = table.concat(args,' ')
@@ -502,7 +791,6 @@ function utils.register_AM3_ws(args)
     end
 end
 
-
 function utils.apply_bufflist(args)
     local mj = windower.ffxi.get_player().main_job
     local sj = windower.ffxi.get_player().sub_job
@@ -513,7 +801,7 @@ function utils.apply_bufflist(args)
         bl_target = 'me'
     end
     local buff_list = table.get_nested_value(hb.config.buff_lists, {job, job:lower(), mj, mj:lower()}, bl_name)
-
+    
     buff_list = buff_list or hb.config.buff_lists[bl_name]
     if buff_list ~= nil then
         for _,buff in pairs(buff_list) do
@@ -523,26 +811,6 @@ function utils.apply_bufflist(args)
         atc('Error: Invalid argument specified for BuffList: '..bl_name)
     end
 end
-
-
-function utils.apply_debufflist(args)
-    local mj = windower.ffxi.get_player().main_job
-    local sj = windower.ffxi.get_player().sub_job
-    local job = ('%s/%s'):format(mj, sj)
-    local debl_name = args[1]
-
-    local debuff_list = table.get_nested_value(hb.config.debuff_lists, {job, job:lower(), mj, mj:lower()}, debl_name)
-
-    debuff_list = debuff_list or hb.config.debuff_lists[debl_name]
-    if debuff_list ~= nil then
-        for _,debuff in pairs(debuff_list) do
-            utils.register_offensive_debuff({debuff}, false)
-        end
-    else
-        atc('Error: Invalid argument specified for DebuffList: '..debl_name)
-    end
-end
-
 
 function utils.apply_custom_settings(args)
     local self = windower.ffxi.get_player().name
@@ -568,6 +836,8 @@ function utils.apply_custom_settings(args)
                 offense.assist.engage  = custom_settings['assistEngage']
             elseif key == 'noapproach' then
                 offense.assist.noapproach = custom_settings['noapproach']
+            elseif key == 'sametarget' then
+                offense.assist.sametarget = custom_settings['sametarget']
             elseif key == 'follow' then
                 settings.follow.active = custom_settings['follow']
             elseif key == 'followTarget' then
@@ -616,8 +886,6 @@ function utils.apply_custom_settings(args)
         atc('Error: Invalid argument specified for Custom Settings: '..custom_settings_name)
     end
 end
-
-
 
 function utils.posCommand(boxName, args)
     if (args[1] == nil) or (args[2] == nil) then return false end
@@ -691,6 +959,9 @@ function disableCommand(cmd, disable)
     elseif S{'na','heal_debuff','cure_debuff'}:contains(cmd) then
         settings.disable.na = disable
         atc('Removal of status effects'..msg)
+	elseif S{'erase'}:contains(cmd) then
+		settings.disable.erase = disable
+		atc('Erase status effects'..msg)
     elseif S{'buff','buffs','buffing'}:contains(cmd) then
         settings.disable.buff = disable
         atc('Buffing'..msg)
@@ -769,6 +1040,21 @@ function utils.getPlayerName(name)
     return nil
 end
 
+function utils.getPlayerNameFromJob(job)
+	local target
+	for k, v in pairs(windower.ffxi.get_party()) do
+		if type(v) == 'table' and v.mob ~= nil and v.mob.in_party then
+			if ((job:lower() == 'tank' and S{'PLD','RUN'}:contains(get_registry(v.mob.id))) or (job:lower() ~= 'tank' and get_registry(v.mob.id):lower() == job:lower())) then
+				target = v.name
+			end
+		end
+	end
+    if target ~= nil then
+        return target
+    end
+    return nil
+end
+
 function num_strats()
     local p = windower.ffxi.get_player()
     local sch_level = 0
@@ -797,12 +1083,30 @@ function healer_has_buffs(buffs)
     return false
 end
 
+function utils.isMonster(mob_index)
+	local mob_in_question = windower.ffxi.get_mob_by_index(mob_index)
+	if mob_in_question and mob_in_question.is_npc and mob_in_question.spawn_type == 16 and mob_in_question.valid_target then
+		return true
+	end
+end
+
+function utils.check_claim_id(id)
+	for k, v in pairs(windower.ffxi.get_party()) do
+		if type(v) == 'table' then
+			if id and v.mob and v.mob.id == id then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function utils.ready_to_use(action)
     if light_strategems:contains(action.en) then
         if not healer_has_buffs(light_arts) then return false end
 
         local strats = num_strats()
-        if strats < 1 then return false end
+        if strats < 1 then return false end 
 
         local rc = windower.ffxi.get_ability_recasts()[action.recast_id]
         return rc <= (4 * 60) / strats * (strats - 1)
@@ -810,14 +1114,212 @@ function utils.ready_to_use(action)
         if not healer_has_buffs(dark_arts) then return false end
 
         local strats = num_strats()
-        if strats < 1 then return false end
+        if strats < 1 then return false end 
 
         local rc = windower.ffxi.get_ability_recasts()[action.recast_id]
         return rc <= (4 * 60) / strats * (strats - 1)
-
     else
         return healer:ready_to_use(action)
     end
+end
+
+function utils.debuffs_disp()
+	debuffs_lists = L()
+	if next(offense.mobs) ~= nil or next(offense.dispel.mobs) ~= nil then
+		if next(offense.mobs) ~= nil then
+			local t_target = windower.ffxi.get_mob_by_target('t') or nil
+			local tindex = 0
+			for mob_id,debuff_table in pairs(offense.mobs) do
+				tindex = utils.get_mob_index(debuff_table)
+				local claim_target = tindex and windower.ffxi.get_mob_by_index(tindex) and windower.ffxi.get_mob_by_index(tindex).claim_id or nil
+				if (utils.check_claim_id(claim_target)) or (t_target and t_target.valid_target and t_target.is_npc and t_target.spawn_type == 16 and t_target.id == mob_id) then
+					utils.debuff_display_builder(debuff_table,true,false,mob_id,tindex)
+					if next(offense.dispel.mobs) ~= nil then
+						if offense.dispel.mobs[mob_id] then
+							utils.debuff_display_builder(offense.dispel.mobs[mob_id],false,true,mob_id)
+						end
+					end
+				end
+			end
+		end
+		-- If just dispel buffs
+		if next(offense.dispel.mobs) ~= nil then
+			local t_target = windower.ffxi.get_mob_by_target('t') or nil
+			local tindex = 0
+			for mob_id,dispel_table in pairs(offense.dispel.mobs) do
+				tindex = utils.get_mob_index(dispel_table)
+				local claim_target = tindex and windower.ffxi.get_mob_by_index(tindex) and windower.ffxi.get_mob_by_index(tindex).claim_id or nil
+				if not offense.mobs[mob_id] and ((utils.check_claim_id(claim_target)) or (t_target and t_target.valid_target and t_target.is_npc and t_target.spawn_type == 16 and t_target.id == mob_id)) then
+					utils.debuff_display_builder(dispel_table,true,true,mob_id,tindex)
+				end
+			end
+		end
+	end
+    hb.txts.debuffList:text(getPrintable(debuffs_lists))
+    hb.txts.debuffList:visible(settings.textBoxes.debuffList.visible)
+end
+
+function utils.debuff_display_builder(d_table, name, dispel, mob_id, mob_index)
+	local count = 0
+	local colorOrange = "\\cs(255,165,0)"
+	local colorRed = "\\cs(255,50,0)"
+	local formattedMessage = ""
+	local mob_claim_name = ""
+
+	for _,v in pairs(d_table) do
+		if count == 0 and name then
+			local claim_target = windower.ffxi.get_mob_by_index(mob_index) and windower.ffxi.get_mob_by_index(mob_index).claim_id or nil
+			if utils.check_claim_id(claim_target) then
+				mob_claim_name = string.format("%s%s\\cr", colorRed, v.mob_name)
+				if d_table[0] then
+					debuffs_lists:append('['..mob_claim_name..'] - '..mob_id..' - '..string.format(os.date('%M:%S',os.time()-d_table[0].landed)))
+				else
+					debuffs_lists:append('['..mob_claim_name..'] - '..mob_id)
+				end
+			else
+				if d_table[0] then
+					debuffs_lists:append('['..v.mob_name..'] - '..mob_id..' - '..string.format(os.date('%M:%S',os.time()-d_table[0].landed)))
+				else
+					debuffs_lists:append('['..v.mob_name..'] - '..mob_id)
+				end
+			end
+		end
+		if dispel then
+			formattedMessage = string.format("%s%s\\cr", colorOrange, v.debuff_name)
+			debuffs_lists:append(formattedMessage.." : "..string.format(os.date('%M:%S',os.time()-v.landed)))
+		else
+			if v.spell_name ~= "KO" then
+				debuffs_lists:append(v.spell_name.." : "..string.format(os.date('%M:%S',os.time()-v.landed)))
+			end
+		end
+		count = count +1
+	end
+end
+
+function utils.get_mob_index(s_table)
+	for _,v in pairs(s_table) do
+		if v.mob_index then
+			return v.mob_index
+		end
+	end
+	return nil
+end
+
+function utils.check_debuffs_timer()
+	if next(offense.mobs) == nil then return end
+	for mob_id,debuff_table in pairs(offense.mobs) do
+		for k,v in pairs(debuff_table) do
+			if maximum_debuff_timers[v.spell_id] then
+				local now = os.time()
+				if now-debuff_table[k].landed >= maximum_debuff_timers[v.spell_id] then
+					offense.mobs[mob_id][k] = nil
+				end
+			end
+		end
+	end
+end
+
+function utils.toggle_disp()
+	local toggle_list = L()
+	
+    local header_toggle = '\\cs(0,255,0)Healbot\\cr'
+	toggle_list:append(('<<%s>>'):format(header_toggle))
+
+    if hb.modes.independent then
+        local independent_toggle = hb.modes.independent and '\\cs(0,255,0)[ON]\\cr' or '\\cs(255,0,0)[OFF]\\cr'
+	    toggle_list:append(('[Independent Mode]: %s'):format(independent_toggle))
+    end
+
+    if hb.autoRecoverHPMode then 
+        local hp_toggle = hb.autoRecoverHPMode and '\\cs(0,0,255)[ON]\\cr' or '\\cs(255,0,0)[OFF]\\cr'
+	    toggle_list:append(('[Auto HP]: %s'):format(hp_toggle))
+    end
+    if hb.autoRecoverMPMode then 
+	    local mp_toggle = hb.autoRecoverMPMode and '\\cs(0,0,255)[ON]\\cr' or '\\cs(255,0,0)[OFF]\\cr'
+	    toggle_list:append(('[Auto MP]: %s'):format(mp_toggle))
+    end
+
+    if settings.follow.target then 
+        local follow_toggle = settings.follow.target and '\\cs(0,255,0)['..settings.follow.target..']\\cr' or '\\cs(255,0,0)[None]\\cr'
+	    toggle_list:append(('[Following]: %s'):format(follow_toggle))
+
+        local followDist_toggle = settings.follow.distance and '\\cs(0,255,0)['..settings.follow.distance..']\\cr' or '\\cs(255,0,0)[None]\\cr'
+	    toggle_list:append(('[Follow Dist]: %s'):format(followDist_toggle))
+    end
+
+    if offense.assist.name then 
+        local assist_toggle = offense.assist.name and '\\cs(0,255,0)['..offense.assist.name..']\\cr' or '\\cs(255,0,0)[None]\\cr'
+	    toggle_list:append(('[Assisting]: %s'):format(assist_toggle))
+
+        local assistEngage_toggle = offense.assist.engage and '\\cs(0,255,0)[ON]\\cr' or '\\cs(255,0,0)[OFF]\\cr'
+	    toggle_list:append(('[Engaging Mob]: %s'):format(assistEngage_toggle))
+
+        local sametarget_toggle = offense.assist.sametarget and '\\cs(0,255,0)[ON]\\cr' or '\\cs(255,0,0)[OFF]\\cr'
+	    toggle_list:append(('[Same Target]: %s'):format(sametarget_toggle))
+
+        local approach_toggle = offense.assist.noapproach and '\\cs(255,0,0)[False]\\cr' or '\\cs(0,255,0)[True]\\cr'
+	    toggle_list:append(('[Approaching Mob]: %s'):format(approach_toggle))
+    end
+
+    if settings.ws.name then 
+        local weaponSkill_toggle = settings.ws.name and '\\cs(0,255,0)['..settings.ws.name..']\\cr' or '\\cs(255,0,0)[None]\\cr'
+        toggle_list:append(('[Using Weaponskill]: %s'):format(weaponSkill_toggle))
+
+        local weaponSkillTP_toggle = settings.ws.self_tp and '\\cs(0,255,0)['..settings.ws.self_tp..']\\cr' or '\\cs(255,0,0)[1000]\\cr'
+        toggle_list:append(('[Weaponskill TP]: %s'):format(weaponSkillTP_toggle))
+        
+        local weaponSkillHP_toggle = (settings.ws.sign and settings.ws.hp) and '\\cs(0,255,0)['..settings.ws.sign..' '..settings.ws.hp..']\\cr' or '\\cs(255,0,0)[> 0]\\cr'
+        toggle_list:append(('[Weaponskill HP]: %s'):format(weaponSkillHP_toggle))
+    end
+
+    if settings.ws.keep_AM3 then 
+        local weaponSkillAM3_toggle = settings.ws.AM3_name and '\\cs(0,255,0)['..settings.ws.AM3_name..']\\cr' or '\\cs(255,0,0)[None]\\cr'
+        toggle_list:append(('[Using AM3 Weaponskill]: %s'):format(weaponSkillAM3_toggle))
+    end
+
+    if settings.autoshadows then 
+        local autoshadows_toggle = settings.autoshadows and '\\cs(0,255,0)[ON]\\cr' or '\\cs(255,0,0)[Off]\\cr'
+	    toggle_list:append(('[Autoshadows]: %s'):format(autoshadows_toggle))
+    end
+
+    hb.txts.toggleList:text(getPrintable(toggle_list))
+    hb.txts.toggleList:visible(settings.textBoxes.toggleList.visible)
+end
+
+function utils.haveItem(item_id)
+	for bag in T(__bags.usable):it() do
+		for item, index in T(windower.ffxi.get_items(bag.id)):it() do
+			if type(item) == 'table' and item.id == item_id then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function utils.check_recovery_item()
+	if (not hb.autoRecoverMPMode) and (not hb.autoRecoverHPMode) then return false end
+
+	if hb.autoRecoverHPMode and not moving and windower.ffxi.get_player().vitals.hpp < 30 then
+		if utils.haveItem(4175) then
+			atc(123,'HP LOW: Vile Elixir +1')
+			windower.chat.input('/item "Vile Elixir +1" <me>')
+			return true
+		elseif utils.haveItem(4174) then
+			atc(123,'HP LOW: Vile Elixir')
+			windower.chat.input('/item "Vile Elixir" <me>')
+			return true
+		end
+	end
+	
+	if hb.autoRecoverMPMode and not moving and windower.ffxi.get_player().vitals.mpp < 25 then
+		if utils.haveItem(5987) then
+			atc(123,'MP LOW: Coalition Ether')
+			windower.chat.input('/item "Coalition Ether" <me>')
+			return true
+		end
+	end
+	return false
 end
 
 --==============================================================================
@@ -826,17 +1328,17 @@ end
 
 function utils.formatActionName(text)
     if (type(text) ~= 'string') or (#text < 1) then return nil end
-
+    
     local fromAlias = hb.config.aliases[text]
     if (fromAlias ~= nil) then
         return fromAlias
     end
-
+    
     local spell_from_lc = lc_res.spells[text:lower()]
     if spell_from_lc ~= nil then
         return spell_from_lc.en
     end
-
+    
     local parts = text:split(' ')
     if #parts >= 2 then
         local name = formatName(parts[1])
@@ -894,7 +1396,7 @@ end
 --==============================================================================
 
 function printStatus()
-    windower.add_to_chat(1, 'HealBot is now '..(hb.active and 'active' or 'off')..'.')
+    windower.add_to_chat(1, 'HB is now '..(hb.active and 'active' or 'off')..'.')
 end
 
 --==============================================================================
@@ -910,22 +1412,35 @@ function utils.load_configs()
             montoredBox={x=-150,y=600,font='Arial',size=10,visible=true}
         },
         spam = {name='Stone'},
-        healing = {min={cure=3,curaga=1,waltz=2,waltzga=1},curaga_min_targets=2},
+        healing = {
+            min={
+                cure=3,
+                curaga=1,
+                waltz=2,
+                waltzga=1,
+                blue=1,
+                bluega=1
+            },
+            curaga_min_targets=2
+        },
         disable = {curaga=false},
-        ignoreTrusts=true, deactivateIndoors=true, activateOutdoors=false
+        ignoreTrusts=true, 
+        deactivateIndoors=true, 
+        activateOutdoors=false
     }
     local loaded = lor_settings.load('data/settings.lua', defaults)
     utils.update_settings(loaded)
     utils.refresh_textBoxes()
-
+    
     local cure_potency_defaults = {
         cure = {94,207,469,880,1110,1395},  curaga = {150,313,636,1125,1510},
-        waltz = {157,325,581,887,1156},     waltzga = {160,521}
+        waltz = {157,325,581,887,1156},     waltzga = {160,521},
+		blue = {288,762,1072},				bluega = {300,885},
     }
     local buff_lists_defaults = {       self = {'Haste II','Refresh II'},
         whm = {self={'Haste','Refresh'}}, rdm = {self={'Haste II','Refresh II'}}
     }
-
+    
     local debuff_lists_defaults = {  rdm = {self={'Dia II','Paralyze'}}}
     local custom_settings_defaults = {}
 
@@ -946,7 +1461,7 @@ function utils.load_configs()
     hb.config.priorities.debuffs =        hb.config.priorities.debuffs or {}
     hb.config.priorities.dispel =         hb.config.priorities.dispel or {}     --not implemented yet
     hb.config.priorities.default =        hb.config.priorities.default or 5
-
+    
     --process_mabil_debuffs()
     local msg = hb.configs_loaded and 'Rel' or 'L'
     hb.configs_loaded = true
@@ -983,50 +1498,40 @@ function utils.update_settings(loaded)
     table.update_if_not_set(settings, {
         disable = {},
         follow = {delay = 0.08, distance = 3},
-        healing = {minCure = 3, minCuraga = 1, minWaltz = 2, minWaltzga = 1},
+        healing = {
+            minCure = 3, 
+            minCuraga = 2, 
+            minWaltz = 2, 
+            minWaltzga = 2, 
+            minBlue = 2, 
+            minBluega = 2
+        },
         spam = {}
     })
 end
 
+
 function utils.refresh_textBoxes()
-    local OurReso = windower.get_windower_settings()
-    local boxes = {'actionQueue','moveInfo','actionInfo','montoredBox'}
+	local OurReso = windower.get_windower_settings()
+	local X_action_queue = OurReso.x_res - 765
+	local X_mon_box = OurReso.x_res - 305
+
+    local boxes = {'actionQueue','moveInfo','actionInfo','montoredBox','debuffList','toggleList'}
     for _,box in pairs(boxes) do
         local bs = settings.textBoxes[box]
-        local bst
-        if (box == 'actionInfo' or box == 'moveInfo') then
-            bst = {pos={x=bs.x, y=bs.y}, bg={alpha=125, blue=0, green=0,red=0,visible=true}, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-        elseif box == 'montoredBox' then
-            if (OurReso.x_res == 1600) then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif (OurReso.x_res == 1400) then
-                bst = {pos={x=-190, y=420}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 1275 then
-                bst = {pos={x=-235, y=420}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 1000 then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 900 then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            else
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            end
-        elseif box == 'actionQueue' then
-            if (OurReso.x_res == 1600) then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif (OurReso.x_res == 1400) then
-                bst = {pos={x=-155, y=120}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 1275 then
-                bst = {pos={x=-140, y=125}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 1000 then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            elseif OurReso.x_res == 900 then
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            else
-                bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
-            end
-        end
-
-        bst.flags = {right=(bs.x < 0), bottom=(bs.y < 0)}
+		local bst
+		if (box == 'actionInfo' or box == 'moveInfo') then
+			bst = {pos={x=bs.x, y=bs.y}, bg={alpha=125, blue=0, green=0,red=0,visible=true}, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		elseif box == 'montoredBox' then
+			bst = {pos={x=X_mon_box, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		elseif box == 'actionQueue' then
+			bst = {pos={x=X_action_queue, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		elseif box == 'debuffList' then
+			bst = {pos={x=bs.x, y=bs.y}, bg=settings.textBoxes.bg_other, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		elseif box == 'toggleList' then
+			bst = {pos={x=X_mon_box, y=bs.y}, bg=settings.textBoxes.bg, stroke={alpha=255, blue=0, green=0, red=0, width=0}}
+		end
+	
         if (bs.font ~= nil) then
             bst.text = {font=bs.font}
         end
@@ -1034,35 +1539,13 @@ function utils.refresh_textBoxes()
             bst.text = bst.text or {}
             bst.text.size = bs.size
         end
-
+		
         if (hb.txts[box] ~= nil) then
             hb.txts[box]:destroy()
         end
         hb.txts[box] = texts.new(bst)
     end
 end
-
--- Old
--- function utils.refresh_textBoxes()
---     local boxes = {'actionQueue','moveInfo','actionInfo','montoredBox'}
---     for _,box in pairs(boxes) do
---         local bs = settings.textBoxes[box]
---         local bst = {pos={x=bs.x, y=bs.y}}
---         bst.flags = {right=(bs.x < 0), bottom=(bs.y < 0)}
---         if (bs.font ~= nil) then
---             bst.text = {font=bs.font}
---         end
---         if (bs.size ~= nil) then
---             bst.text = bst.text or {}
---             bst.text.size = bs.size
---         end
-
---         if (hb.txts[box] ~= nil) then
---             hb.txts[box]:destroy()
---         end
---         hb.txts[box] = texts.new(bst)
---     end
--- end
 
 
 --==============================================================================
@@ -1120,7 +1603,7 @@ function help_text()
         {'watch <player>','Monitors the given player/npc so they will be healed'},
         {'unwatch <player>','Stops monitoring the given player/npc (=/= ignore)'},
         {'ignoretrusts <on/off>','Toggles whether or not Trust NPCs should be ignored (default: on)'},
-        {'ascmd','Sets a player to assist, toggles whether or not to engage, to approach target, or toggles being active with no argument'},
+        {'ascmd','Sets a player to assist, toggles whether or not to engage, to approach target, switch to the same target as assist, or toggles being active with no argument'},
         {'wscmd1','Sets the weaponskill to use'},
         {'wscmd2','Sets when weaponskills should be used according to whether the mob HP is < or > the given amount'},
         {'wscmd3','Sets a weaponskill partner to open skillchains for, and the TP that they should have'},
@@ -1134,8 +1617,8 @@ function help_text()
     }
     local acmds = {
         ['custom']=('custom'):colorize(ac,cc)..'settings <list name>',
-        ['fcmd']=('f'):colorize(ac,cc)..'ollow [<player> | dist <distance> | off | resume]',
-        ['ascmd']=('as'):colorize(ac,cc)..'sist [<player> | attack | off | resume | noapproach]',
+        ['fcmd']=('f'):colorize(ac,cc)..'ollow [<player> | dist <#> | off | resume]',
+        ['ascmd']=('as'):colorize(ac,cc)..'sist [<player> | attack | off | resume | noapproach | sametarget]',
         ['wscmd1']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill use <ws name>',
         ['wscmd2']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill hp <sign> <mob hp%>',
         ['wscmd3']=('w'):colorize(ac,cc)..'eapon'..('s'):colorize(ac,cc)..'kill waitfor <player> <tp>',
@@ -1145,7 +1628,7 @@ function help_text()
         ['dbcmd2']=('de'):colorize(ac,cc)..('b'):colorize(ac,cc)..'uff'..('l'):colorize(ac,cc)..'ist <list name>',
         ['blcmd']=('b'):colorize(ac,cc)..'uff'..('l'):colorize(ac,cc)..'ist <list name> (<player>)',
     }
-
+    
     for _,tbl in pairs(cmds) do
         local cmd,desc = tbl[1],tbl[2]
         local txta = cmd
@@ -1167,11 +1650,11 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 following conditions are met:
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the
-        following disclaimer.
+      following disclaimer.
     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
-        following disclaimer in the documentation and/or other materials provided with the distribution.
+      following disclaimer in the documentation and/or other materials provided with the distribution.
     * Neither the name of ffxiHealer nor the names of its contributors may be used to endorse or promote products
-        derived from this software without specific prior written permission.
+      derived from this software without specific prior written permission.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL Lorand BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR

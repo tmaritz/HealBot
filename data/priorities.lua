@@ -112,7 +112,7 @@ return {
     ['status_removal'] = {
         ['addle'] = 2,
         ['attack_down'] = 3,
-        ['bind'] = 4,
+        ['bind'] = 2,
         ['bio'] = 3,
         ['blind'] = 4,
         ['curse'] = 2,
@@ -127,5 +127,8 @@ return {
         ['slow'] = 1,
         ['weight'] = 4,
         ['sleep'] = 1
-    }
+    },
+    ['status_removal_id'] = {
+		[20] = 0,
+	},
 }

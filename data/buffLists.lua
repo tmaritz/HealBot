@@ -1,4 +1,54 @@
 return {
+    ['NinsubWar'] = {
+        'Kakka: Ichi',
+        'Berserk',
+        'Aggressor',
+        'Warcry',
+    },
+    ['BlueMage'] = {
+        'Erratic Flutter',
+        'Battery Charge',
+        'Nat. Meditation',
+        'Berserk',
+        'Aggressor',
+        'Warcry',
+    },
+    ['SamsubDrk'] = {
+        'Hasso',
+        'Last Resort',
+        'Hagakure',
+    },
+    ['SamsubWar'] = {
+        'Hasso',
+        'Berserk',
+        'Aggressor',
+        'Warcry',
+        'Hagakure',
+    },
+    ['DrgsubSam'] = {
+        'Hasso',
+        'Spirit Bond',
+    },
+    ['WarsubSam'] = {
+        'Hasso',
+        'Berserk',
+        'Aggressor',
+        'Warcry',
+        'Restraint',
+        'Retaliation',
+    },
+    ['WarSavage'] = {
+        'Berserk',
+        'Aggressor',
+        'Warcry',
+        'Restraint',
+        'Retaliation',
+    },
+    ['DrksubSam'] = {
+        'Hasso',
+        'Last Resort',
+        'Endark',
+    },
     ['rdm/blm'] = {
         'Composure',
         'Haste II',

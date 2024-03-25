@@ -4,34 +4,31 @@ A tool to reduce the amount of button mashing in the FFXI game.
 
 ### Summary
 
-By default, HealBot will monitor the party that it is in.  Commands to monitor
-or ignore additional players can be found below.
+By default, HealBot will monitor the party that it is in.  
+Commands to monitor or ignore additional players can be found below.
 
 Buffs gained via job abilities are now supported, but have not yet been tested
-extensively.  Composure has been confirmed to work.  With the addition of job
-ability support comes support for prioritization (since, for example, Composure
-should be used before other buffs are applied).
+extensively.
+
+This is doubly true with pet jobs.
+
+Alternative for pet job abilities that I have found plays relatively nicely with healbot:
+Headtatt / Selendrile's Gearswaps https://github.com/Headtatt/GearSwap
 
 Detection of whether the local healer is able to act has been improved for when
 debuffs such as sleep or petrify are active, so that now it should not try to
 spam spells while unable to act.  This is apparent by the text box in the top-
 left corner of the screen displaying the message 'Player is disabled'.
 
-Bard songs are officially unsupported at this time.  YMMV - it cannot handle the
-fact that there is no notification given when one song overwrites another, or
-maintaining multiple buffs that have the same name.  That being said, if you
-only want to maintain 2-3 songs without using a dummy song, it may work.  I have
-an idea about how to support BRD songs, so that should be coming soon. Until then
-use Singer - https://github.com/zpaav/Singer
+Bard songs are not supported at this time.
+Singer is the best alternative - https://github.com/Ivaar/Windower-addons/tree/master/Singer
 
-GEO isn't well supported at this time. Alternative:
+GEO isn't well supported at this time. 
+Alternative: AutoGEO - https://github.com/zpaav/AutoGEO
 
-AutoGEO - https://github.com/zpaav/AutoGEO
-
-COR is also not well supported at this time. Alternatives:
-
+COR is also not well supported at this time. 
+Alternatives:
 Roller - https://github.com/zpaav/Roller
-
 AutoCOR - https://github.com/Icydeath/ffxi-addons/tree/master/AutoCOR
 
 Coming soon:
@@ -55,8 +52,8 @@ and debuffs.
 ## Requirements
 ### HealBot depends on libs/lor
 
-These libs can be downloaded [here](https://github.com/lorand-ffxi/lor_libs).
-Full url: https://github.com/lorand-ffxi/lor_libs
+These libs can be downloaded [here](https://github.com/zpaav/lor_libs/).
+Full url: https://github.com/zpaav/lor_libs/
 
 To install, unzip the download and place the internal most `lor` folder into the `Windower\addons\libs` folder.
 
@@ -64,7 +61,10 @@ To verify the correct folder setup, click on the `lor` folder and if it has the 
 If not, go one level deeper until you see those files.
 
 ### Required addons
-shortcuts and cancel
+gearswap
+shortcuts
+cancel
+
 Please install these and turn them on.
 This can be done through the Windower Addons options.
 
@@ -106,6 +106,8 @@ Place the healBot folder in `.../Windower/addons/`
 
 ### Command List
 
+Just to note this is not the complete list of commands. Still adding as I go.
+
 #### General Setup Commands
 | Command                                | Action                                                                                                        |
 | ---------------------------------------| --------------------------------------------------------------------------------------------------------------|
@@ -115,6 +117,7 @@ Place the healBot folder in `.../Windower/addons/`
 | //hb status                            | Displays whether or not healBot is active in the chat log                                                     |
 | //hb mincure (#)                       | Set the minimum cure tier to # (default is 3 - if this is spammy set it to 4 to be safe)                      |
 | //hb independent (on/off)              | Sets it as independent player use and continues any of the automation - autoassist and follow should be off   |
+| //hb ind(e) (on/off)                   | Sets it as independent player (shorthand independent)                                                         |
 | //hb customsettings listName           | Loads a customized settings profile from custom_settings.lua                                                  |
 | //hb custom listName                   | Loads a customized settings profile from custom_settings.lua (customsettings shorthand)                       |
 
@@ -172,13 +175,15 @@ Place the healBot folder in `.../Windower/addons/`
 | Command                            | Action                                                                                                        |
 | -----------------------------------| --------------------------------------------------------------------------------------------------------------|
 | //hb assist (charName)             | Assists player charName (This Must be in proper form - Fendo not fendo)                                       |
-| //hb assist attack                 | Will engage target mob on assist                                                                              |
+| //hb assist attack/engage          | Will engage target mob on assist                                                                              |
 | //hb assist noapproach on          | Will not approach target on assist - Set follow dist to .5 to ensure you are in melee range.                  |
 | //hb assist noapproach off         | Will approach target on assist (this is the default setting)                                                  |
+| //hb assist sametarget on          | Will switch targets with assist  (this is the default setting)                                                |
+| //hb assist sametarget off         | Will not switch targets with assist                                                                           |
 | //hb assist off                    | Stop assisting player                                                                                         |
 | //hb assist resume                 | Resumes assisting                                                                                             |
 | //hb as (charName)                 | Assists player charName (This Must be in proper form - Fendo not fendo) (assist shorthand)                    |
-| //hb as attack                     | Will engage target mob on assist (assist shorthand)                                                           |
+| //hb as attack/engage              | Will engage target mob on assist (assist shorthand)                                                           |
 | //hb as noapproach on              | Will not approach target on assist - Set follow dist to .5 to ensure you are in melee range.(assist shorthand)|
 | //hb as noapproach off             | Will approach target on assist (this is the default setting) (assist shorthand)                               |
 | //hb as off                        | Stop assisting player (assist shorthand)                                                                      |
@@ -208,7 +213,7 @@ Place the healBot folder in `.../Windower/addons/`
 | //hb weaponskill waitfor (player) (tp) | Waits for another player to use weaponskill at a certain TP                                                   |
 | //hb weaponskill nopartner             | Does not wait for another player to use weaponskill tain TP                                                   |
 | //hb ws use (ws name)                  | Selects weaponskill to use (weaponskill shorthand)                                                            |
-| //hb ws keepAM3 (true|false)           | Selects turns on option to maintin AM3                                                                        |
+| //hb ws keepAM3 (true/false)           | Selects turns on option to maintin AM3                                                                        |
 | //hb ws setAM3 (ws name)               | Selects weaponskill to upkeep AM3                                                                             |
 | //hb ws tp (number 1000-2999)          | Selects min tp for a weaponskill (weaponskill shorthand)                                                      |
 | //hb ws hp (sign) (mob hp%)            | Sets the mob HP for weaponskill use (example < 100  or > 1) (weaponskill shorthand)                           |
@@ -245,6 +250,7 @@ Reference each of these as well to setup customized buffs and debuff lists to be
     ['assistName'] = 'Denorea',             -- Auto Assist (Name) - If AutoAssist is false this is not required, otherwise character name to assist.
     ['assistEngage'] = true,                -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
     ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['sametarget'] = true,                  -- (true | false) toggle. Do or do not switch targets on assisting.
     ['follow'] = true,                      -- Auto Follow (true | false) - Is autoFollow being used?
     ['followTarget'] = 'Denorea',           -- Auto Follow (Name) - If autoFollow is false this is not required, otherwise character name to follow.
     ['followDist'] = 0.3,                   -- Auto Follow Distance - If autoFollow is false this is not required, otherwise must be a number. Distance to follow character.
@@ -271,6 +277,7 @@ Reference each of these as well to setup customized buffs and debuff lists to be
     ['assistName'] = 'Denorea',             -- Auto Assist (Name) - If AutoAssist is false this is not required, otherwise character name to assist.
     ['assistEngage'] = true,                -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
     ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['sametarget'] = true,                  -- (true | false) toggle. Do or do not switch targets on assisting.
     ['follow'] = true,                      -- Auto Follow (true | false) - Is autoFollow being used?
     ['followTarget'] = 'Denorea',           -- Auto Follow (Name) - If autoFollow is false this is not required, otherwise character name to follow.
     ['followDist'] = 0.3,                   -- Auto Follow Distance - If autoFollow is false this is not required, otherwise must be a number. Distance to follow character.
@@ -289,6 +296,7 @@ Reference each of these as well to setup customized buffs and debuff lists to be
     ['assist'] = false,                     -- Auto Assist (true | false) - Is autoAssist being used?
     ['assistEngage'] = false,               -- Engage on Auto Assist (true | false) - If AutoAssist is false this is not required, otherwise engaging on assisting toggle.
     ['noapproach'] = false,                 -- (true | false) toggle. Do not approach target on assisting.
+    ['sametarget'] = true,                  -- (true | false) toggle. Do or do not switch targets on assisting.
     ['follow'] = false,                     -- Auto Follow (true | false) - Is autoFollow being used?
     ['useWeaponSkill'] = 'Savage Blade',    -- Auto Weaponskill to use. - Must be an actual weaponskill. If it's one you can't use it won't actually ever fire.
     ['useWeaponSkillTP'] = 1000,            -- Auto Weaponskill TP threshold. - Must be a number.
@@ -325,7 +333,7 @@ https://github.com/lorand-ffxi/HealBot
 
 ## Additions / Other ideas taken from these other repos
 
-https://github.com/PeachBlossomWine/HealBot
+https://github.com/PeachBlossomWine/HealBot (Great other fork of Healbot that is kept up to date)
 
 https://github.com/KateFFXI/HealBot (Updated 09/22/2021)
 

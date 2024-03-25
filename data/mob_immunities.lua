@@ -1,4 +1,5 @@
 return {
+    ["_comment"] = "This file is automatically updated with buff IDs as immunities are discovered",
     ["Agon Halo"] = S{
         2,
         194
@@ -204,6 +205,9 @@ return {
     },
     ["Dimensional Tether"] = S{
         194
+    },
+    ["Disjoined Elvaan"] = S{
+        28
     },
     ["Disjoined Galka"] = S{
         7,
@@ -450,11 +454,17 @@ return {
     ["Tumult Curator"] = S{
         2
     },
+    ["U Bnai's Acuex"] = S{
+        7
+    },
     ["Ulhuadshi"] = S{
         2
     },
     ["Vanguard Eye"] = S{
         2
+    },
+    ["Volte's Luopan"] = S{
+        194
     },
     ["Volte Beastmaster"] = S{
         6
@@ -525,9 +535,6 @@ return {
     ["Volte Warrior"] = S{
         6
     },
-    ["Volte's Luopan"] = S{
-        194
-    },
     ["Wasp Nest"] = S{
         194
     },
@@ -549,6 +556,5 @@ return {
     },
     ["Xee Khoyi the Shrouded"] = S{
         2
-    },
-    ["_comment"] = "This file is automatically updated with buff IDs as immunities are discovered"
+    }
 }
