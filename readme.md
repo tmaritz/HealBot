@@ -21,7 +21,7 @@ spam spells while unable to act.  This is apparent by the text box in the top-
 left corner of the screen displaying the message 'Player is disabled'.
 
 Bard songs are not supported at this time.
-Singer is the best alternative - https://github.com/Ivaar/Windower-addons/tree/master/Singer
+Singer is the best alternative - https://github.com/zpaav/Singer
 
 GEO isn't well supported at this time. 
 Alternative: AutoGEO - https://github.com/zpaav/AutoGEO
