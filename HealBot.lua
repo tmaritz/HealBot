@@ -304,17 +304,17 @@ hb._events['render'] = windower.register_event('prerender', function()
 					if offense.assist.engage and (partner.status == 1) then
 						if offense.assist.noapproach == false then
                             if healer:dist_from(targ.id) > (offense.mobdistance + targ.model_size) then
-                                if not player.target_locked and not (offense.assist.nolock) then
+                                if (not player.target_locked) then
                                     healer:send_cmd('input /lockon')
                                 end
                                 should_move = true
                                 healer:move_towards(targ.id)
-                            elseif healer:dist_from(targ.id) < (offense.mobdistance + targ.model_size) then
-                                if player.target_locked then
-                                    healer:send_cmd('input /lockon')
-                                end
-                                should_move = true
-                                healer:move_away(targ.id)
+                            -- elseif healer:dist_from(targ.id) < (offense.mobdistance + targ.model_size) then
+                            --     if player.target_locked then
+                            --         healer:send_cmd('input /lockon')
+                            --     end
+                            --     should_move = true
+                            --     healer:move_away(targ.id)
                             end
                         elseif offense.assist.noapproach == true then 
                             -- if player.target_locked then
@@ -342,6 +342,8 @@ hb._events['render'] = windower.register_event('prerender', function()
                             end
                             should_move = true
                             healer:move_away(mob.id)
+                        else
+                            should_move = false
                         end
                     end
                 end
